@@ -201,18 +201,62 @@ export default function DetalleModal({
                       },
                     })}
                   >
-                    <Stack direction="row" spacing={0.5}>
-                      {[v.talla, v.color, v.modelo, v.capacidad]
-                        .filter(Boolean)
-                        .map((attr, i) => (
-                          <Chip
-                            key={i}
-                            label={attr}
-                            size="small"
-                            variant="outlined"
-                          />
-                        ))}
-                    </Stack>
+                    <Stack direction="row" flexWrap="wrap" gap={1.5} justifyContent="center">
+  {producto.variantes.map((v) => {
+    const isSelected = varianteSeleccionada?.id === v.id;
+
+    const label = [
+      v.talla,
+      v.color,
+      v.modelo,
+      v.capacidad,
+    ]
+      .filter(Boolean)
+      .join(" - ");
+
+    return (
+      <Button
+        key={v.id}
+        onClick={() => setVarianteSeleccionada(v)}
+        disabled={v.stock === 0}
+        sx={(theme) => ({
+          px: 2.5,
+          py: 1,
+          borderRadius: "999px",
+          textTransform: "none",
+          fontSize: 14,
+          fontWeight: 500,
+
+          // 🔥 ESTILO LIMPIO
+          border: `1px solid ${
+            isSelected
+              ? theme.palette.primary.main
+              : "#ddd"
+          }`,
+
+          backgroundColor: isSelected
+            ? theme.palette.primary.main
+            : "#fff",
+
+          color: isSelected ? "#fff" : "#333",
+
+          opacity: v.stock === 0 ? 0.4 : 1,
+
+          transition: "all 0.2s ease",
+
+          "&:hover": {
+            backgroundColor: isSelected
+              ? theme.palette.primary.dark
+              : "#f5f5f5",
+            borderColor: theme.palette.primary.main,
+          },
+        })}
+      >
+        {label || "Única"}
+      </Button>
+    );
+  })}
+</Stack>
                   </Button>
                 );
               })}
