@@ -16,7 +16,7 @@ import Layout from "./components/Layout";
 
 function App() {
   return (
-    <GoogleOAuthProvider clientId="6793546722-48rr78ea6tsderktj36dvihijcofjm8f.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId="6793546722-ro4pd9ldsdrrl4l9k0jdm0pbl7f5ppu0.apps.googleusercontent.com">
       <BrowserRouter>
         <AuthProvider>
           <CarritoProvider>
