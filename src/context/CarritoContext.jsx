@@ -37,6 +37,9 @@ export function CarritoProvider({ children }) {
     cargarCarrito();
   }, [access]);
 
+  // =====================
+  // 🔥 ACTUALIZAR CANTIDAD
+  // =====================
   const setCantidad = async (itemId, cantidad) => {
     if (!access) throw new Error("Debes iniciar sesión.");
     if (cantidad < 1) return;
@@ -65,25 +68,53 @@ export function CarritoProvider({ children }) {
     }
   };
 
-  const agregarAlCarrito = async (producto_id, cantidad = 1) => {
+  // =====================
+  // 🔥 AGREGAR AL CARRITO (FIX VARIANTES)
+  // =====================
+  const agregarAlCarrito = async (
+    producto_id,
+    cantidad = 1,
+    variante_id = null
+  ) => {
     if (!access) throw new Error("Debes iniciar sesión.");
+
     try {
-      const nuevoItem = await apiAgregar(producto_id, cantidad, access);
+      const nuevoItem = await apiAgregar(
+        producto_id,
+        cantidad,
+        access,
+        variante_id // 🔥 AQUÍ ESTÁ EL FIX
+      );
 
       setCarrito((prev) => {
-        const items = prev.items.filter((it) => it.id !== nuevoItem.id);
+        // 🔥 clave: evitar duplicados (producto + variante)
+        const items = prev.items.filter(
+          (it) =>
+            !(
+              it.producto.id === nuevoItem.producto.id &&
+              (it.variante?.id || null) === (nuevoItem.variante?.id || null)
+            )
+        );
+
         return { ...prev, items: [...items, nuevoItem] };
       });
+
+      toast.success("Producto agregado 🛒");
     } catch (e) {
       console.error(e);
-      throw new Error(
+      toast.error(
         e?.response?.data?.error || e.message || "No se pudo agregar el producto"
       );
+      throw e;
     }
   };
 
+  // =====================
+  // ❌ ELIMINAR
+  // =====================
   const eliminarItem = async (itemId) => {
     if (!access) throw new Error("Debes iniciar sesión.");
+
     try {
       await apiEliminar(itemId, access);
 
@@ -101,6 +132,9 @@ export function CarritoProvider({ children }) {
     }
   };
 
+  // =====================
+  // 🧹 LIMPIAR LOCAL
+  // =====================
   const limpiarLocal = () => setCarrito({ items: [] });
 
   const value = useMemo(

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useCarrito } from "../context/CarritoContext";
@@ -35,19 +35,45 @@ export default function ProductoCard({ producto, onVerDetalle, onAgregar }) {
   const { agregarAlCarrito } = useCarrito();
   const navigate = useNavigate();
 
-  // 👇 imagen seleccionada
   const [imagenActiva, setImagenActiva] = useState(producto.imagen);
 
-  // 👇 todas las imágenes
+  // 🔥 imágenes
   const imagenes = [
     producto.imagen,
     ...(producto.imagenes?.map((img) => img.imagen) || []),
   ].filter(Boolean);
 
+  // =========================
+  // 🔥 STOCK REAL DESDE VARIANTES
+  // =========================
+  const stockTotal = useMemo(() => {
+    if (!producto.variantes || producto.variantes.length === 0) return 1; // producto sin variantes
+    return producto.variantes.reduce((acc, v) => acc + (v.stock || 0), 0);
+  }, [producto]);
+
+  const tieneVariantes =
+    producto.variantes && producto.variantes.length > 0;
+
+  // =========================
+  // 🛒 AGREGAR
+  // =========================
   const onAdd = async () => {
     if (!isAuthenticated) {
       toast.warn("Debes iniciar sesión para agregar productos");
       navigate("/login");
+      return;
+    }
+
+    // 🔥 si tiene variantes → no permitir desde card
+    if (tieneVariantes) {
+      toast.info("Selecciona talla y color en el detalle 👇");
+      if (onVerDetalle) {
+        onVerDetalle();
+      } else {
+        navigate(`/producto/${producto.id}`, {
+          state: { producto },
+        });
+      }
       return;
     }
 
@@ -57,7 +83,7 @@ export default function ProductoCard({ producto, onVerDetalle, onAgregar }) {
     }
 
     try {
-      await agregarAlCarrito(producto.id, 1);
+      await agregarAlCarrito(producto.id, 1, null); // 🔥 sin variante
       toast.success(`${producto.nombre} agregado al carrito ✅`);
     } catch (e) {
       toast.error(e.message);
@@ -66,7 +92,7 @@ export default function ProductoCard({ producto, onVerDetalle, onAgregar }) {
 
   return (
     <Card sx={cardSx} elevation={0}>
-      {/* Imagen principal (MISMO TAMAÑO QUE SIEMPRE) */}
+      {/* Imagen */}
       <Box sx={imagenBoxSx}>
         <Box
           component="img"
@@ -86,16 +112,12 @@ export default function ProductoCard({ producto, onVerDetalle, onAgregar }) {
         )}
       </Box>
 
-      {/* 🔥 Miniaturas clicables */}
+      {/* Miniaturas */}
       {imagenes.length > 1 && (
         <Stack
           direction="row"
           spacing={1}
-          sx={{
-            px: 1,
-            mt: 1,
-            justifyContent: "center",
-          }}
+          sx={{ px: 1, mt: 1, justifyContent: "center" }}
         >
           {imagenes.map((img, i) => (
             <Box
@@ -148,11 +170,11 @@ export default function ProductoCard({ producto, onVerDetalle, onAgregar }) {
             color="primary"
             fullWidth
             startIcon={<AddShoppingCartIcon />}
-            sx={botonAgregarSx(producto.stock)}
+            sx={botonAgregarSx(stockTotal)}
             onClick={onAdd}
-            disabled={producto.stock === 0}
+            disabled={stockTotal === 0}
           >
-            {producto.stock > 0 ? "Agregar al carrito" : "Agotado"}
+            {stockTotal > 0 ? "Agregar al carrito" : "Agotado"}
           </Button>
 
           <Button

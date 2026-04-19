@@ -5,9 +5,13 @@ import {
   IconButton,
   Chip,
   Dialog,
+  Button,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { useState, useEffect, useMemo } from "react";
+import { useCarrito } from "../context/CarritoContext";
+import { useAuth } from "../context/AuthContext";
+import { toast } from "react-toastify";
 import detalleModalStyles from "./DetalleModal.styles";
 
 export default function DetalleModal({
@@ -16,9 +20,14 @@ export default function DetalleModal({
   onClose,
   setLightbox,
 }) {
+  const { agregarAlCarrito } = useCarrito();
+  const { isAuthenticated } = useAuth();
+
   if (!producto) return null;
 
-  // 🔥 Normalizar imágenes (optimizado)
+  // =========================
+  // 🖼 IMÁGENES
+  // =========================
   const imagenes = useMemo(() => {
     const imgs = [
       producto.imagen,
@@ -27,20 +36,51 @@ export default function DetalleModal({
       .map((img) => (typeof img === "string" ? img : img?.imagen))
       .filter(Boolean);
 
-    // 🔥 eliminar duplicados
     return [...new Set(imgs)];
   }, [producto]);
 
-  // 🔥 Estado seguro
   const [imagenActiva, setImagenActiva] = useState("");
+  const [varianteSeleccionada, setVarianteSeleccionada] = useState(null);
 
   useEffect(() => {
     if (open) {
       setImagenActiva(imagenes[0] || "");
+      setVarianteSeleccionada(null);
     }
   }, [open, imagenes]);
 
   const imagenSegura = imagenActiva || imagenes[0] || "";
+
+  const tieneVariantes =
+    producto.variantes && producto.variantes.length > 0;
+
+  // =========================
+  // 🛒 AGREGAR
+  // =========================
+  const handleAgregar = async () => {
+    if (!isAuthenticated) {
+      toast.warn("Debes iniciar sesión");
+      return;
+    }
+
+    if (tieneVariantes && !varianteSeleccionada) {
+      toast.error("Selecciona talla o color");
+      return;
+    }
+
+    try {
+      await agregarAlCarrito(
+        producto.id,
+        1,
+        varianteSeleccionada?.id || null // 🔥 CLAVE
+      );
+
+      toast.success("Producto agregado ✅");
+      onClose();
+    } catch (e) {
+      toast.error(e.message);
+    }
+  };
 
   return (
     <Dialog
@@ -49,61 +89,43 @@ export default function DetalleModal({
       maxWidth="md"
       fullWidth
       sx={detalleModalStyles.dialog}
-      PaperProps={{
-        sx: detalleModalStyles.dialogPaper,
-      }}
+      PaperProps={{ sx: detalleModalStyles.dialogPaper }}
     >
-      {/* ❌ botón fuera del flujo de scroll */}
-      <IconButton
-        onClick={onClose}
-        sx={detalleModalStyles.botonCerrar}
-      >
+      <IconButton onClick={onClose} sx={detalleModalStyles.botonCerrar}>
         <CloseIcon />
       </IconButton>
 
-      {/* 🔥 UN SOLO SCROLL (Paper) */}
       <Stack spacing={3} alignItems="center">
-        
-        {/* 🖼 Imagen */}
+
+        {/* IMAGEN */}
         {imagenSegura ? (
           <Box
             sx={detalleModalStyles.sliderBox}
-            onClick={() =>
-              setLightbox && setLightbox(imagenSegura)
-            }
+            onClick={() => setLightbox && setLightbox(imagenSegura)}
           >
             <Box
               component="img"
               src={imagenSegura}
               alt={producto.nombre}
-              loading="lazy"
               sx={detalleModalStyles.imagen}
             />
           </Box>
         ) : (
-          <Typography>No hay imagen disponible</Typography>
+          <Typography>No hay imagen</Typography>
         )}
 
-        {/* 🔥 Miniaturas */}
+        {/* MINIATURAS */}
         {imagenes.length > 1 && (
-          <Stack
-            direction="row"
-            spacing={1}
-            flexWrap="wrap"
-            justifyContent="center"
-          >
+          <Stack direction="row" spacing={1}>
             {imagenes.map((img, i) => (
               <Box
-                key={img} // 🔥 mejor key
+                key={i}
                 component="img"
                 src={img}
-                alt={`img-${i}`}
                 onClick={() => setImagenActiva(img)}
                 sx={{
                   width: 55,
                   height: 55,
-                  objectFit: "cover",
-                  borderRadius: 1,
                   cursor: "pointer",
                   border:
                     imagenSegura === img
@@ -115,23 +137,51 @@ export default function DetalleModal({
           </Stack>
         )}
 
-        {/* 📝 Info */}
-        <Box sx={{ textAlign: "center", maxWidth: 700 }}>
-          <Typography variant="h5" fontWeight="bold" gutterBottom>
+        {/* INFO */}
+        <Box textAlign="center">
+          <Typography variant="h5" fontWeight="bold">
             {producto.nombre}
           </Typography>
 
-          <Chip
-            label={producto.stock > 0 ? "En stock" : "Agotado"}
-            color={producto.stock > 0 ? "success" : "error"}
-            variant="outlined"
-            sx={{ ...detalleModalStyles.stockChip, mb: 2 }}
-          />
-
-          <Typography sx={detalleModalStyles.descripcion}>
-            {producto.descripcion}
-          </Typography>
+          <Typography>{producto.descripcion}</Typography>
         </Box>
+
+        {/* =========================
+            🔥 VARIANTES
+        ========================= */}
+        {tieneVariantes && (
+          <Stack spacing={1} alignItems="center">
+            <Typography fontWeight="bold">
+              Selecciona variante:
+            </Typography>
+
+            <Stack direction="row" flexWrap="wrap" gap={1}>
+              {producto.variantes.map((v) => (
+                <Button
+                  key={v.id}
+                  variant={
+                    varianteSeleccionada?.id === v.id
+                      ? "contained"
+                      : "outlined"
+                  }
+                  onClick={() => setVarianteSeleccionada(v)}
+                  disabled={v.stock === 0}
+                >
+                  {v.talla || ""} {v.color || ""}
+                </Button>
+              ))}
+            </Stack>
+          </Stack>
+        )}
+
+        {/* BOTÓN */}
+        <Button
+          variant="contained"
+          fullWidth
+          onClick={handleAgregar}
+        >
+          Agregar al carrito
+        </Button>
       </Stack>
     </Dialog>
   );
