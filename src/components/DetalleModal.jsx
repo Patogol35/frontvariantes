@@ -160,7 +160,7 @@ export default function DetalleModal({
           </Typography>
         </Box>
 
-        {/* 🔥 VARIANTES (DISEÑO NUEVO) */}
+        {/* 🔥 VARIANTES */}
         {tieneVariantes && (
           <Stack spacing={2} alignItems="center">
             <Typography fontWeight="bold">
@@ -197,15 +197,11 @@ export default function DetalleModal({
                       borderRadius: "999px",
                       textTransform: "none",
                       fontWeight: 500,
-
                       border: "1px solid #ddd",
                       backgroundColor: isSelected ? "#111" : "#fff",
                       color: isSelected ? "#fff" : "#333",
-
                       opacity: v.stock === 0 ? 0.4 : 1,
-
                       transition: "all 0.2s ease",
-
                       "&:hover": {
                         backgroundColor: isSelected
                           ? "#000"
@@ -214,7 +210,22 @@ export default function DetalleModal({
                       },
                     }}
                   >
-                    {label || "Única"}
+                    {/* 👇 CONTENIDO CON PRECIO */}
+                    <Stack spacing={0.2} alignItems="center" lineHeight={1}>
+                      <Typography fontSize={13}>
+                        {label || "Única"}
+                      </Typography>
+
+                      <Typography
+                        fontSize={12}
+                        fontWeight="bold"
+                        sx={{
+                          color: isSelected ? "#fff" : "#1976d2",
+                        }}
+                      >
+                        ${v.precio ?? producto.precio}
+                      </Typography>
+                    </Stack>
                   </Button>
                 );
               })}
@@ -273,4 +284,4 @@ export default function DetalleModal({
       </Stack>
     </Dialog>
   );
-              }
+                      }
