@@ -15,8 +15,7 @@ import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import detalleModalStyles from "./DetalleModal.styles";
 
-// 🔥 reutilizamos el estilo del card (IMPORTANTE)
-import { botonAgregarSx } from "../components/ProductoCard.styles"; // ajusta ruta
+import { botonAgregarSx } from "../components/ProductoCard.styles";
 
 export default function DetalleModal({
   producto,
@@ -48,7 +47,7 @@ export default function DetalleModal({
     return [...new Set(imgs)];
   }, [producto, varianteSeleccionada]);
 
-  // 🔥 STOCK TOTAL (igual que card)
+  // 🔥 STOCK TOTAL
   const stockTotal = useMemo(() => {
     if (!producto.variantes || producto.variantes.length === 0) {
       return 1;
@@ -59,12 +58,15 @@ export default function DetalleModal({
     );
   }, [producto]);
 
-  // Reset al abrir
+  // 🔥 AUTO-SELECCIÓN DE VARIANTE
   useEffect(() => {
-    if (open) {
-      setVarianteSeleccionada(null);
+    if (open && producto.variantes?.length > 0) {
+      const primeraDisponible = producto.variantes.find(
+        (v) => v.stock > 0
+      );
+      setVarianteSeleccionada(primeraDisponible || null);
     }
-  }, [open]);
+  }, [open, producto]);
 
   // Cambiar imagen según variante
   useEffect(() => {
@@ -172,6 +174,13 @@ export default function DetalleModal({
             {producto.nombre}
           </Typography>
 
+          {/* 🔥 PRECIO DINÁMICO */}
+          <Typography variant="h6" color="primary" fontWeight="bold">
+            $
+            {varianteSeleccionada?.precio ||
+              producto.precio}
+          </Typography>
+
           <Typography sx={{ mt: 1 }}>
             {producto.descripcion}
           </Typography>
@@ -190,7 +199,16 @@ export default function DetalleModal({
 
             <Stack direction="row" flexWrap="wrap" gap={1}>
               {producto.variantes.map((v) => {
-                const label = `${v.talla || ""} ${v.color || ""}`.trim();
+                const label = [
+                  v.talla,
+                  v.color,
+                  v.material,
+                  v.edicion,
+                  v.capacidad,
+                  v.marca,
+                ]
+                  .filter(Boolean)
+                  .join(" / ");
 
                 return (
                   <Button
@@ -208,13 +226,19 @@ export default function DetalleModal({
                       borderRadius: 2,
                     }}
                   >
-                    {label || "Única"} ({v.stock})
+                    <>
+                      {label || "Única"}
+                      <br />
+                      <small>
+                        ${v.precio || producto.precio} • Stock: {v.stock}
+                      </small>
+                    </>
                   </Button>
                 );
               })}
             </Stack>
 
-            {/* STOCK DINÁMICO */}
+            {/* STOCK */}
             {varianteSeleccionada && (
               <Chip
                 label={`Stock: ${varianteSeleccionada.stock}`}
@@ -228,7 +252,7 @@ export default function DetalleModal({
           </Stack>
         )}
 
-        {/* 🔥 BOTÓN CORREGIDO */}
+        {/* BOTÓN */}
         <Box
           sx={{
             width: "100%",
@@ -267,4 +291,4 @@ export default function DetalleModal({
       </Stack>
     </Dialog>
   );
-                                      }
+}
