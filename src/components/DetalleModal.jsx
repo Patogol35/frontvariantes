@@ -14,9 +14,7 @@ import { useCarrito } from "../context/CarritoContext";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import detalleModalStyles from "./DetalleModal.styles";
-
-// 🔥 reutilizamos el estilo del card (IMPORTANTE)
-import { botonAgregarSx } from "../components/ProductoCard.styles"; // ajusta ruta
+import { botonAgregarSx } from "../components/ProductoCard.styles";
 
 export default function DetalleModal({
   producto,
@@ -30,11 +28,37 @@ export default function DetalleModal({
   if (!producto) return null;
 
   const [imagenActiva, setImagenActiva] = useState("");
-  const [varianteSeleccionada, setVarianteSeleccionada] = useState(null);
+  const [tallaSeleccionada, setTallaSeleccionada] = useState(null);
+  const [colorSeleccionado, setColorSeleccionado] = useState(null);
 
-  // =========================
-  // 🖼 IMÁGENES DINÁMICAS
-  // =========================
+  // 🔥 obtener variantes
+  const variantes = producto.variantes || [];
+
+  // 🔥 tallas únicas
+  const tallas = [...new Set(variantes.map((v) => v.talla))];
+
+  // 🔥 colores según talla
+  const colores = useMemo(() => {
+    if (!tallaSeleccionada) return [];
+    return [
+      ...new Set(
+        variantes
+          .filter((v) => v.talla === tallaSeleccionada)
+          .map((v) => v.color)
+      ),
+    ];
+  }, [tallaSeleccionada, variantes]);
+
+  // 🔥 variante seleccionada final
+  const varianteSeleccionada = useMemo(() => {
+    return variantes.find(
+      (v) =>
+        v.talla === tallaSeleccionada &&
+        v.color === colorSeleccionado
+    );
+  }, [tallaSeleccionada, colorSeleccionado, variantes]);
+
+  // 🔥 imágenes dinámicas
   const imagenes = useMemo(() => {
     if (varianteSeleccionada?.imagenes?.length > 0) {
       return varianteSeleccionada.imagenes.map((img) => img.imagen);
@@ -48,66 +72,47 @@ export default function DetalleModal({
     return [...new Set(imgs)];
   }, [producto, varianteSeleccionada]);
 
-  // 🔥 STOCK TOTAL (igual que card)
-  const stockTotal = useMemo(() => {
-    if (!producto.variantes || producto.variantes.length === 0) {
-      return 1;
-    }
-    return producto.variantes.reduce(
-      (acc, v) => acc + (v.stock || 0),
-      0
-    );
-  }, [producto]);
-
-  // Reset al abrir
+  // reset
   useEffect(() => {
     if (open) {
-      setVarianteSeleccionada(null);
+      setTallaSeleccionada(null);
+      setColorSeleccionado(null);
     }
   }, [open]);
 
-  // Cambiar imagen según variante
+  // imagen activa
   useEffect(() => {
-    if (varianteSeleccionada?.imagenes?.length > 0) {
-      setImagenActiva(varianteSeleccionada.imagenes[0].imagen);
-    } else {
-      setImagenActiva(imagenes[0] || "");
+    if (imagenes.length > 0) {
+      setImagenActiva(imagenes[0]);
     }
-  }, [varianteSeleccionada, imagenes]);
+  }, [imagenes]);
 
-  const imagenSegura = imagenActiva || imagenes[0] || "/placeholder.png";
+  const imagenSegura = imagenActiva || "/placeholder.png";
 
-  const tieneVariantes = producto.variantes?.length > 0;
+  const stockDisponible = varianteSeleccionada?.stock || 0;
 
-  const tieneStockVariantes = producto.variantes?.some(
-    (v) => v.stock > 0
-  );
-
-  // =========================
-  // 🛒 AGREGAR
-  // =========================
+  // 🛒 agregar
   const handleAgregar = async () => {
     if (!isAuthenticated) {
       toast.warn("Debes iniciar sesión");
       return;
     }
 
-    if (tieneVariantes && !varianteSeleccionada) {
-      toast.error("Selecciona una variante");
+    if (!varianteSeleccionada) {
+      toast.error("Selecciona talla y color");
       return;
     }
 
     try {
       await agregarAlCarrito(
         producto.id,
-        varianteSeleccionada?.id || null,
+        varianteSeleccionada.id,
         1
       );
-
       toast.success("Producto agregado ✅");
       onClose();
     } catch (e) {
-      toast.error(e.message || "Error al agregar");
+      toast.error(e.message || "Error");
     }
   };
 
@@ -115,18 +120,18 @@ export default function DetalleModal({
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="md"
+      maxWidth="sm"
       fullWidth
       sx={detalleModalStyles.dialog}
       PaperProps={{ sx: detalleModalStyles.dialogPaper }}
     >
-      {/* Cerrar */}
+      {/* cerrar */}
       <IconButton onClick={onClose} sx={detalleModalStyles.botonCerrar}>
         <CloseIcon />
       </IconButton>
 
       <Stack spacing={3} alignItems="center">
-        {/* IMAGEN PRINCIPAL */}
+        {/* imagen */}
         <Box
           sx={detalleModalStyles.sliderBox}
           onClick={() => setLightbox && setLightbox(imagenSegura)}
@@ -139,7 +144,7 @@ export default function DetalleModal({
           />
         </Box>
 
-        {/* MINIATURAS */}
+        {/* miniaturas */}
         {imagenes.length > 1 && (
           <Stack direction="row" spacing={1}>
             {imagenes.map((img, i) => (
@@ -156,17 +161,15 @@ export default function DetalleModal({
                   cursor: "pointer",
                   border:
                     imagenSegura === img
-                      ? (theme) =>
-                          `2px solid ${theme.palette.primary.main}`
-                      : (theme) =>
-                          `1px solid ${theme.palette.divider}`,
+                      ? "2px solid #1976d2"
+                      : "1px solid #777",
                 }}
               />
             ))}
           </Stack>
         )}
 
-        {/* INFO */}
+        {/* info */}
         <Box textAlign="center">
           <Typography variant="h5" fontWeight="bold">
             {producto.nombre}
@@ -177,62 +180,67 @@ export default function DetalleModal({
           </Typography>
         </Box>
 
-        {/* VARIANTES */}
-        {tieneVariantes && (
-          <Stack spacing={2} alignItems="center">
-            <Typography fontWeight="bold">
-              Selecciona una opción:
-            </Typography>
+        {/* TALLAS */}
+        <Stack spacing={1} alignItems="center">
+          <Typography fontWeight="bold">Talla</Typography>
 
-            {!tieneStockVariantes && (
-              <Chip label="Sin stock" color="error" />
-            )}
+          <Stack direction="row" gap={1}>
+            {tallas.map((t) => (
+              <Button
+                key={t}
+                variant={tallaSeleccionada === t ? "contained" : "outlined"}
+                onClick={() => {
+                  setTallaSeleccionada(t);
+                  setColorSeleccionado(null);
+                }}
+              >
+                {t}
+              </Button>
+            ))}
+          </Stack>
+        </Stack>
 
-            <Stack direction="row" flexWrap="wrap" gap={1}>
-              {producto.variantes.map((v) => {
-                const label = `${v.talla || ""} ${v.color || ""}`.trim();
+        {/* COLORES */}
+        {tallaSeleccionada && (
+          <Stack spacing={1} alignItems="center">
+            <Typography fontWeight="bold">Color</Typography>
 
-                return (
-                  <Button
-                    key={v.id}
-                    variant={
-                      varianteSeleccionada?.id === v.id
-                        ? "contained"
-                        : "outlined"
-                    }
-                    onClick={() => setVarianteSeleccionada(v)}
-                    disabled={v.stock === 0}
+            <Stack direction="row" gap={1}>
+              {colores.map((c) => (
+                <Button
+                  key={c}
+                  variant={colorSeleccionado === c ? "contained" : "outlined"}
+                  onClick={() => setColorSeleccionado(c)}
+                  sx={{ textTransform: "none" }}
+                >
+                  <Box
                     sx={{
-                      opacity: v.stock === 0 ? 0.5 : 1,
-                      textTransform: "none",
-                      borderRadius: 2,
+                      width: 12,
+                      height: 12,
+                      borderRadius: "50%",
+                      backgroundColor: c?.toLowerCase(),
+                      mr: 1,
                     }}
-                  >
-                    {label || "Única"} ({v.stock})
-                  </Button>
-                );
-              })}
+                  />
+                  {c}
+                </Button>
+              ))}
             </Stack>
-
-            {/* STOCK DINÁMICO */}
-            {varianteSeleccionada && (
-              <Chip
-                label={`Stock: ${varianteSeleccionada.stock}`}
-                color={
-                  varianteSeleccionada.stock > 0
-                    ? "success"
-                    : "default"
-                }
-              />
-            )}
           </Stack>
         )}
 
-        {/* 🔥 BOTÓN CORREGIDO */}
+        {/* STOCK */}
+        {varianteSeleccionada && (
+          <Chip
+            label={`Stock: ${stockDisponible}`}
+            color={stockDisponible > 0 ? "success" : "default"}
+          />
+        )}
+
+        {/* BOTÓN */}
         <Box
           sx={{
             width: "100%",
-            mt: 2,
             display: "flex",
             justifyContent: "center",
           }}
@@ -242,24 +250,15 @@ export default function DetalleModal({
             startIcon={<AddShoppingCartIcon />}
             onClick={handleAgregar}
             sx={{
-              ...botonAgregarSx(stockTotal),
+              ...botonAgregarSx(stockDisponible),
               maxWidth: 400,
               width: "100%",
             }}
-            disabled={
-              tieneVariantes
-                ? !varianteSeleccionada ||
-                  varianteSeleccionada.stock === 0
-                : stockTotal === 0
-            }
+            disabled={!varianteSeleccionada || stockDisponible === 0}
           >
-            {tieneVariantes
-              ? varianteSeleccionada
-                ? varianteSeleccionada.stock > 0
-                  ? "Agregar al carrito"
-                  : "Agotado"
-                : "Seleccionar opciones"
-              : stockTotal > 0
+            {!tallaSeleccionada || !colorSeleccionado
+              ? "Seleccionar opciones"
+              : stockDisponible > 0
               ? "Agregar al carrito"
               : "Agotado"}
           </Button>
@@ -267,4 +266,4 @@ export default function DetalleModal({
       </Stack>
     </Dialog>
   );
-}
+            }
