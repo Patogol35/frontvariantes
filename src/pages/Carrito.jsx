@@ -29,6 +29,7 @@ export default function Carrito() {
     setCantidad,
     eliminarItem,
   } = useCarrito();
+
   const { access } = useAuth();
   const navigate = useNavigate();
 
@@ -36,18 +37,26 @@ export default function Carrito() {
     cargarCarrito();
   }, []);
 
+  // =========================
+  // 💰 TOTAL
+  // =========================
   const total = useMemo(
     () => items.reduce((acc, it) => acc + calcularSubtotal(it), 0),
     [items]
   );
 
+  // =========================
+  // 🛒 COMPRAR
+  // =========================
   const comprar = async () => {
     try {
       const res = await crearPedido(access);
+
       if (res?.error) {
         toast.error(res.error);
         return;
       }
+
       toast.success("Pedido realizado ✅");
       limpiarLocal();
       navigate("/pedidos");
@@ -56,8 +65,14 @@ export default function Carrito() {
     }
   };
 
+  // =========================
+  // 🔼 INCREMENTAR (🔥 FIX VARIANTES)
+  // =========================
   const incrementar = (it) => {
-    const stock = it.producto?.stock ?? 0;
+    const stock = it.variante
+      ? it.variante.stock
+      : 999; // producto sin variantes
+
     if (it.cantidad < stock) {
       setCantidad(it.id, it.cantidad + 1);
     } else {
@@ -65,11 +80,18 @@ export default function Carrito() {
     }
   };
 
-  const decrementar = (it) =>
-    it.cantidad > 1 && setCantidad(it.id, it.cantidad - 1);
+  // =========================
+  // 🔽 DECREMENTAR
+  // =========================
+  const decrementar = (it) => {
+    if (it.cantidad > 1) {
+      setCantidad(it.id, it.cantidad - 1);
+    }
+  };
 
   return (
     <Box sx={styles.root}>
+      {/* HEADER */}
       <Typography
         variant="h4"
         gutterBottom
@@ -81,11 +103,15 @@ export default function Carrito() {
         Mi Carrito
       </Typography>
 
+      {/* LOADING */}
       {loading && <Typography>Cargando carrito...</Typography>}
+
+      {/* VACÍO */}
       {!loading && items.length === 0 && (
         <Typography>Tu carrito está vacío.</Typography>
       )}
 
+      {/* ITEMS */}
       {!loading &&
         items.map((it) => (
           <CarritoItem
@@ -99,6 +125,7 @@ export default function Carrito() {
           />
         ))}
 
+      {/* FOOTER */}
       {!loading && items.length > 0 && (
         <Box sx={styles.footerBox(theme)}>
           <Divider sx={styles.divider} />
@@ -120,4 +147,4 @@ export default function Carrito() {
       )}
     </Box>
   );
-            }
+}
