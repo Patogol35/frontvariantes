@@ -15,9 +15,6 @@ export function CarritoProvider({ children }) {
   const [carrito, setCarrito] = useState({ items: [] });
   const [loading, setLoading] = useState(false);
 
-  // =====================
-  // 🔄 CARGAR CARRITO
-  // =====================
   const cargarCarrito = async () => {
     if (!access) {
       setCarrito({ items: [] });
@@ -40,105 +37,69 @@ export function CarritoProvider({ children }) {
     cargarCarrito();
   }, [access]);
 
-  // =====================
-  // 🔥 ACTUALIZAR CANTIDAD
-  // =====================
   const setCantidad = async (itemId, cantidad) => {
     if (!access) throw new Error("Debes iniciar sesión.");
+    if (cantidad < 1) return;
 
     try {
-      await apiSetCantidad(itemId, cantidad, access);
-      await cargarCarrito(); // 🔥 sincroniza siempre
+      const res = await apiSetCantidad(itemId, cantidad, access);
+
+      setCarrito((prev) => ({
+        ...prev,
+        items: prev.items.map((it) =>
+          it.id === itemId
+            ? { ...it, cantidad: res.cantidad }
+            : it
+        ),
+      }));
     } catch (e) {
       toast.error(e?.response?.data?.error || "Error al actualizar");
     }
   };
 
-  // =====================
-  // 🔥 AGREGAR AL CARRITO
-  // =====================
-  const agregarAlCarrito = async (
-    producto_id,
-    cantidad = 1,
-    variante_id = null
-  ) => {
+  // 🔥 AHORA CON VARIANTE
+  const agregarAlCarrito = async (producto_id, variante_id, cantidad = 1) => {
     if (!access) throw new Error("Debes iniciar sesión.");
 
     try {
-      const nuevoItem = await apiAgregar(
-        producto_id,
-        cantidad,
-        access,
-        variante_id
-      );
+      const nuevoItem = await apiAgregar(producto_id, variante_id, cantidad, access);
 
       setCarrito((prev) => {
-        const index = prev.items.findIndex(
-          (it) =>
-            it.producto.id === nuevoItem.producto.id &&
-            (it.variante?.id || null) ===
-              (nuevoItem.variante?.id || null)
-        );
-
-        if (index !== -1) {
-          const updated = [...prev.items];
-          updated[index] = nuevoItem;
-          return { ...prev, items: updated };
-        }
-
-        return { ...prev, items: [...prev.items, nuevoItem] };
+        const items = prev.items.filter((it) => it.id !== nuevoItem.id);
+        return { ...prev, items: [...items, nuevoItem] };
       });
-
-      toast.success("Producto agregado 🛒");
     } catch (e) {
-      toast.error(e?.response?.data?.error || "Error al agregar");
-      throw e;
+      throw new Error(
+        e?.response?.data?.error || "No se pudo agregar el producto"
+      );
     }
   };
 
-  // =====================
-  // ❌ ELIMINAR ITEM
-  // =====================
   const eliminarItem = async (itemId) => {
-    if (!access) throw new Error("Debes iniciar sesión.");
-
-    try {
-      await apiEliminar(itemId, access);
-
-      setCarrito((prev) => ({
-        ...prev,
-        items: prev.items.filter((it) => it.id !== itemId),
-      }));
-
-      toast.warn("Producto eliminado 🗑️");
-    } catch (e) {
-      toast.error("Error al eliminar");
-    }
+    await apiEliminar(itemId, access);
+    setCarrito((prev) => ({
+      ...prev,
+      items: prev.items.filter((it) => it.id !== itemId),
+    }));
   };
 
-  // =====================
-  // 💰 TOTAL
-  // =====================
-  const total = useMemo(() => {
-    return carrito.items.reduce(
-      (acc, it) => acc + (it.subtotal || 0),
-      0
-    );
-  }, [carrito]);
+  const limpiarLocal = () => setCarrito({ items: [] });
+
+  const value = useMemo(
+    () => ({
+      items: carrito.items || [],
+      loading,
+      agregarAlCarrito,
+      setCantidad,
+      eliminarItem,
+      limpiarLocal,
+      cargarCarrito,
+    }),
+    [carrito, loading]
+  );
 
   return (
-    <CarritoContext.Provider
-      value={{
-        carrito,
-        items: carrito.items || [],
-        total,
-        loading,
-        cargarCarrito,
-        agregarAlCarrito,
-        setCantidad,
-        eliminarItem,
-      }}
-    >
+    <CarritoContext.Provider value={value}>
       {children}
     </CarritoContext.Provider>
   );
