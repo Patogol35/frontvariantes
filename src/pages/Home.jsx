@@ -137,7 +137,7 @@ export default function Home() {
           <MenuItem value="asc">Precio: menor a mayor</MenuItem>
           <MenuItem value="desc">Precio: mayor a menor</MenuItem>
 
-          <MenuItem value="ventas">🔥 Más vendidos</MenuItem>
+          <MenuItem value="ventas"> Más vendidos</MenuItem>
         </TextField>
       </Paper>
 
