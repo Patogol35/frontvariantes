@@ -8,6 +8,7 @@ import {
   Chip,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import { useNavigate } from "react-router-dom";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import { useState, useEffect, useMemo } from "react";
@@ -25,7 +26,9 @@ export default function DetalleModal({
   modo = "compra",
   setModo, // 🔥 IMPORTANTE
 }) {
+  const navigate = useNavigate();
   const { agregarAlCarrito } = useCarrito();
+  
   const { isAuthenticated } = useAuth();
 
   if (!producto) return null;
