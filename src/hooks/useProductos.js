@@ -38,16 +38,32 @@ export function useProductos({ categoria, search, sort, itemsPerPage }) {
 
   // 🔹 Filtrar y ordenar (memorizado)
   const filtered = useMemo(() => {
-    return (productos || [])
-      .filter((p) =>
-        debouncedSearch === ""
-          ? true
-          : p.nombre?.toLowerCase().includes(debouncedSearch)
-      )
-      .sort((a, b) =>
-        sort === "asc" ? a.precio - b.precio : b.precio - a.precio
-      );
-  }, [productos, debouncedSearch, sort]);
+  const getPrecio = (producto) => {
+    if (!producto.variantes?.length) {
+      return producto.precio || 0;
+    }
+
+    const precios = producto.variantes
+      .map((v) => v.precio)
+      .filter(Boolean);
+
+    return precios.length
+      ? Math.min(...precios)
+      : producto.precio || 0;
+  };
+
+  return (productos || [])
+    .filter((p) =>
+      debouncedSearch === ""
+        ? true
+        : p.nombre?.toLowerCase().includes(debouncedSearch)
+    )
+    .sort((a, b) =>
+      sort === "asc"
+        ? getPrecio(a) - getPrecio(b)
+        : getPrecio(b) - getPrecio(a)
+    );
+}, [productos, debouncedSearch, sort]);
 
   // 🔹 Paginación (único lugar donde se calcula)
   const paginated = useMemo(() => {
