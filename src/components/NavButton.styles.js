@@ -24,14 +24,11 @@ const navButtonStyles = (theme, isActive, item, alwaysColoredPaths) => ({
   transform: isActive ? "scale(1.04)" : "scale(1)",
 
   "&:hover": {
-  background: {
-    md: item.color,
+    boxShadow: isActive
+      ? "0 0 20px rgba(0,0,0,0.4)"
+      : "0 0 12px rgba(0,0,0,0.25)",
+    filter: "brightness(1.1)",
   },
-  boxShadow: isActive
-    ? "0 0 20px rgba(0,0,0,0.4)"
-    : "0 0 12px rgba(0,0,0,0.25)",
-  filter: "brightness(1.1)",
-},
 
   // Ajuste dark mode
   ...(theme.palette.mode === "dark" && {
