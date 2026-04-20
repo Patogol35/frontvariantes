@@ -18,7 +18,6 @@ import carritoItemStyles from "./CarritoItem.styles";
 
 export default function CarritoItem({
   it,
-  theme,
   incrementar,
   decrementar,
   setCantidad,
@@ -27,12 +26,26 @@ export default function CarritoItem({
   // 🔥 STOCK (VARIANTE > PRODUCTO)
   const stock = it.variante?.stock ?? it.producto?.stock ?? 0;
 
-  // 🖼 IMAGEN DINÁMICA
+  // 🖼 IMAGEN DINÁMICA (con fallback)
   const imagen =
     it.variante?.imagenes?.[0]?.imagen ||
     it.producto?.imagenes?.[0]?.imagen ||
     it.producto?.imagen ||
-    undefined;
+    "/placeholder.png";
+
+  // 🧠 LABEL DINÁMICO DE VARIANTE (igual que modal)
+  const varianteLabel = it.variante
+    ? [
+        it.variante.talla,
+        it.variante.color,
+        it.variante.modelo,
+        it.variante.capacidad,
+      ]
+        .filter(Boolean)
+        .map((x) => x.trim())
+        .filter((v, i, arr) => arr.indexOf(v) === i)
+        .join(" • ")
+    : null;
 
   return (
     <Card sx={carritoItemStyles.card}>
@@ -51,16 +64,14 @@ export default function CarritoItem({
             {it.producto?.nombre}
           </Typography>
 
-          {/* 🔥 VARIANTE (solo valores) */}
-          {it.variante && (
+          {/* 🔥 VARIANTE */}
+          {varianteLabel && (
             <Typography
               variant="body2"
               color="text.secondary"
               sx={{ fontWeight: 500 }}
             >
-              {[it.variante.talla, it.variante.color]
-                .filter(Boolean)
-                .join(" • ")}
+              {varianteLabel}
             </Typography>
           )}
 
@@ -73,7 +84,7 @@ export default function CarritoItem({
           </Typography>
         </Box>
 
-        {/* Precio + Stock */}
+        {/* 💰 Precio + 📦 Stock */}
         <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
           <Chip
             icon={<MonetizationOnIcon />}
@@ -94,10 +105,10 @@ export default function CarritoItem({
         </Box>
       </CardContent>
 
-      {/* Controles cantidad + eliminar */}
+      {/* 🎛 CONTROLES */}
       <Box sx={carritoItemStyles.controlesWrapper}>
         <Box sx={carritoItemStyles.cantidadWrapper}>
-          {/* Botón restar */}
+          {/* ➖ Restar */}
           <IconButton
             onClick={() => decrementar(it)}
             disabled={it.cantidad <= 1 || stock === 0}
@@ -106,7 +117,7 @@ export default function CarritoItem({
             <RemoveIcon />
           </IconButton>
 
-          {/* Input cantidad */}
+          {/* 🔢 Input */}
           <TextField
             type="number"
             size="small"
@@ -134,7 +145,7 @@ export default function CarritoItem({
             sx={carritoItemStyles.cantidadInput}
           />
 
-          {/* Botón sumar */}
+          {/* ➕ Sumar */}
           <IconButton
             onClick={() => incrementar(it)}
             disabled={it.cantidad >= stock || stock === 0}
@@ -144,7 +155,7 @@ export default function CarritoItem({
           </IconButton>
         </Box>
 
-        {/* Botón eliminar */}
+        {/* 🗑 Eliminar */}
         <IconButton
           onClick={() => {
             eliminarItem(it.id);
