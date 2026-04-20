@@ -10,7 +10,7 @@ const navButtonStyles = (theme, isActive, item, alwaysColoredPaths) => ({
 
   "& .MuiButton-startIcon": { color: "#fff" },
 
-  // Fondo dinámico
+  // 🔥 usar backgroundColor (no background)
   backgroundColor: {
     xs: item.color,
     md:
@@ -19,24 +19,21 @@ const navButtonStyles = (theme, isActive, item, alwaysColoredPaths) => ({
         : "transparent",
   },
 
-  // Estado activo
   boxShadow: isActive ? "0 0 20px rgba(255,255,255,0.5)" : "none",
   transform: isActive ? "scale(1.04)" : "scale(1)",
 
-  // 🔥 HOVER CORREGIDO (mata el azul de MUI)
+  // 🔥 hover REAL
   "&:hover": {
-    backgroundColor: `${item.color} !important`,
+    backgroundColor: item.color,
     boxShadow: isActive
       ? "0 0 20px rgba(0,0,0,0.4)"
       : "0 0 12px rgba(0,0,0,0.25)",
     filter: "brightness(1.1)",
   },
 
-  // Dark mode
   ...(theme.palette.mode === "dark" && {
-    color: "#fff",
     "&:hover": {
-      backgroundColor: `${item.color} !important`,
+      backgroundColor: item.color,
       filter: "brightness(1.2)",
     },
   }),
