@@ -3,11 +3,10 @@ import {
   Typography,
   Stack,
   IconButton,
-  Dialog,
   Button,
   Chip,
 } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import { useState, useEffect, useMemo } from "react";
@@ -17,21 +16,20 @@ import { toast } from "react-toastify";
 import detalleModalStyles from "./DetalleModal.styles";
 import { botonAgregarSx } from "../components/ProductoCard.styles";
 
-export default function DetalleModal({
+export default function DetalleProducto({
   producto,
-  open,
-  onClose,
   setLightbox,
   modo = "compra",
-  setModo, // 🔥 IMPORTANTE
+  setModo,
+  onBack, // 🔥 opcional (para volver)
 }) {
   const { agregarAlCarrito } = useCarrito();
   const { isAuthenticated } = useAuth();
 
-  if (!producto) return null;
-
   const [imagenActiva, setImagenActiva] = useState("");
   const [varianteSeleccionada, setVarianteSeleccionada] = useState(null);
+
+  if (!producto) return null;
 
   // 🖼 IMÁGENES
   const imagenes = useMemo(() => {
@@ -56,12 +54,11 @@ export default function DetalleModal({
     );
   }, [producto]);
 
-  // 🔥 RESET SOLO CUANDO ABRE EN COMPRA
   useEffect(() => {
-    if (open && modo === "compra") {
+    if (modo === "compra") {
       setVarianteSeleccionada(null);
     }
-  }, [open, modo]);
+  }, [modo]);
 
   useEffect(() => {
     if (varianteSeleccionada?.imagenes?.length > 0) {
@@ -81,10 +78,9 @@ export default function DetalleModal({
   const precioActual =
     varianteSeleccionada?.precio ?? producto.precio;
 
-  // 🛒 AGREGAR
   const handleAgregar = async () => {
     if (!isAuthenticated) {
-      toast.error("Debes iniciar sesión para agregar productos al carrito");
+      toast.error("Debes iniciar sesión");
       return;
     }
 
@@ -101,26 +97,21 @@ export default function DetalleModal({
       );
 
       toast.success("Producto agregado ✅");
-      onClose();
     } catch (e) {
-      toast.error(e.message || "Error al agregar");
+      toast.error(e.message || "Error");
     }
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="md"
-      fullWidth
-      sx={detalleModalStyles.dialog}
-      PaperProps={{ sx: detalleModalStyles.dialogPaper }}
-    >
-      <IconButton onClick={onClose} sx={detalleModalStyles.botonCerrar}>
-        <CloseIcon />
+    <Box sx={{ p: 2, maxWidth: 900, mx: "auto" }}>
+      
+      {/* 🔙 BOTÓN ATRÁS */}
+      <IconButton onClick={onBack}>
+        <ArrowBackIcon />
       </IconButton>
 
       <Stack spacing={3} alignItems="center">
+
         {/* IMAGEN */}
         <Box
           sx={detalleModalStyles.sliderBox}
@@ -134,7 +125,7 @@ export default function DetalleModal({
           />
         </Box>
 
-        {/* 💰 PRECIO */}
+        {/* PRECIO */}
         <Stack direction="row" alignItems="center" spacing={1}>
           <AttachMoneyIcon color="success" />
           <Typography variant="h5" fontWeight="bold" color="success.main">
@@ -151,17 +142,16 @@ export default function DetalleModal({
                 component="img"
                 src={img}
                 onClick={() => setImagenActiva(img)}
-                sx={(theme) => ({
+                sx={{
                   width: 55,
                   height: 55,
                   objectFit: "cover",
                   borderRadius: 1,
                   cursor: "pointer",
-                  border:
-                    imagenSegura === img
-                      ? `2px solid ${theme.palette.primary.main}`
-                      : `1px solid ${theme.palette.divider}`,
-                })}
+                  border: imagenSegura === img
+                    ? "2px solid #1976d2"
+                    : "1px solid #ddd",
+                }}
               />
             ))}
           </Stack>
@@ -172,15 +162,15 @@ export default function DetalleModal({
           <Typography variant="h5" fontWeight="bold">
             {producto.nombre}
           </Typography>
-
           <Typography sx={{ mt: 1 }}>
             {producto.descripcion}
           </Typography>
         </Box>
 
-        {/* 🔥 VARIANTES SOLO EN COMPRA */}
+        {/* VARIANTES */}
         {tieneVariantes && modo === "compra" && (
           <Stack spacing={2} alignItems="center">
+
             <Typography fontWeight="bold">
               Selecciona una opción:
             </Typography>
@@ -189,20 +179,18 @@ export default function DetalleModal({
               <Chip label="Sin stock" color="error" />
             )}
 
-            <Stack
-              direction="row"
-              flexWrap="wrap"
-              gap={1.5}
-              justifyContent="center"
-            >
+            <Stack direction="row" flexWrap="wrap" gap={1.5}>
               {producto.variantes.map((v) => {
                 const isSelected = varianteSeleccionada?.id === v.id;
 
-                const label = [...new Set(
-                  [v.talla, v.color, v.modelo, v.capacidad]
-                    .filter(Boolean)
-                    .map((x) => x.trim())
-                )].join(" - ");
+                const label = [
+                  v.talla,
+                  v.color,
+                  v.modelo,
+                  v.capacidad,
+                ]
+                  .filter(Boolean)
+                  .join(" - ");
 
                 return (
                   <Button
@@ -210,15 +198,9 @@ export default function DetalleModal({
                     onClick={() => setVarianteSeleccionada(v)}
                     disabled={v.stock === 0}
                     sx={{
-                      px: 2.5,
-                      py: 1,
                       borderRadius: "999px",
-                      textTransform: "none",
-                      fontWeight: 500,
-                      border: "1px solid #ddd",
                       backgroundColor: isSelected ? "#111" : "#fff",
                       color: isSelected ? "#fff" : "#333",
-                      opacity: v.stock === 0 ? 0.4 : 1,
                     }}
                   >
                     {label || "Única"}
@@ -230,68 +212,27 @@ export default function DetalleModal({
             {varianteSeleccionada && (
               <Chip
                 label={`Stock: ${varianteSeleccionada.stock}`}
-                color={
-                  varianteSeleccionada.stock > 0
-                    ? "success"
-                    : "default"
-                }
+                color="success"
               />
             )}
           </Stack>
         )}
 
-        {/* 🔥 BOTÓN FINAL */}
-        <Box
+        {/* BOTÓN */}
+        <Button
+          variant="contained"
+          startIcon={<AddShoppingCartIcon />}
+          onClick={handleAgregar}
           sx={{
+            ...botonAgregarSx(stockTotal),
+            maxWidth: 400,
             width: "100%",
-            mt: 2,
-            display: "flex",
-            justifyContent: "center",
           }}
         >
-          {modo === "info" ? (
-            <Button
-              variant="contained"
-              fullWidth
-              onClick={() => setModo("compra")} // 🔥 CAMBIO REAL
-              sx={{
-                maxWidth: 400,
-                width: "100%",
-                backgroundColor: "#2196f3",
-              }}
-            >
-              Seleccionar opciones
-            </Button>
-          ) : (
-            <Button
-              variant="contained"
-              startIcon={<AddShoppingCartIcon />}
-              onClick={handleAgregar}
-              sx={{
-                ...botonAgregarSx(stockTotal),
-                maxWidth: 400,
-                width: "100%",
-              }}
-              disabled={
-                tieneVariantes
-                  ? !varianteSeleccionada ||
-                    varianteSeleccionada.stock === 0
-                  : stockTotal === 0
-              }
-            >
-              {tieneVariantes
-                ? varianteSeleccionada
-                  ? varianteSeleccionada.stock > 0
-                    ? "Agregar al carrito"
-                    : "Agotado"
-                  : "Seleccionar opciones"
-                : stockTotal > 0
-                ? "Agregar al carrito"
-                : "Agotado"}
-            </Button>
-          )}
-        </Box>
+          Agregar al carrito
+        </Button>
+
       </Stack>
-    </Dialog>
+    </Box>
   );
-          }
+}
