@@ -23,7 +23,7 @@ export default function DetalleModal({
   onClose,
   setLightbox,
   modo = "compra",
-  setModo,
+  setModo, // 🔥 IMPORTANTE
 }) {
   const { agregarAlCarrito } = useCarrito();
   const { isAuthenticated } = useAuth();
@@ -50,21 +50,19 @@ export default function DetalleModal({
   // 📦 STOCK
   const stockTotal = useMemo(() => {
     if (!producto.variantes?.length) return 1;
-
     return producto.variantes.reduce(
       (acc, v) => acc + (v.stock || 0),
       0
     );
   }, [producto]);
 
-  // RESET
+  // 🔥 RESET SOLO CUANDO ABRE EN COMPRA
   useEffect(() => {
     if (open && modo === "compra") {
       setVarianteSeleccionada(null);
     }
   }, [open, modo]);
 
-  // IMAGEN ACTIVA
   useEffect(() => {
     if (varianteSeleccionada?.imagenes?.length > 0) {
       setImagenActiva(varianteSeleccionada.imagenes[0].imagen);
@@ -83,19 +81,10 @@ export default function DetalleModal({
   const precioActual =
     varianteSeleccionada?.precio ?? producto.precio;
 
-  // 🛒 AGREGAR (FIX SIN CRASH)
+  // 🛒 AGREGAR
   const handleAgregar = async () => {
     if (!isAuthenticated) {
-      toast.error("Debes iniciar sesión para agregar productos");
-
-      // 🔥 cerrar modal primero
-      onClose && onClose();
-
-      // 🔥 navegación segura (NO rompe React)
-      setTimeout(() => {
-        window.location.assign("/login");
-      }, 150);
-
+      toast.error("Debes iniciar sesión para agregar productos al carrito");
       return;
     }
 
@@ -145,7 +134,7 @@ export default function DetalleModal({
           />
         </Box>
 
-        {/* PRECIO */}
+        {/* 💰 PRECIO */}
         <Stack direction="row" alignItems="center" spacing={1}>
           <AttachMoneyIcon color="success" />
           <Typography variant="h5" fontWeight="bold" color="success.main">
@@ -189,7 +178,7 @@ export default function DetalleModal({
           </Typography>
         </Box>
 
-        {/* VARIANTES */}
+        {/* 🔥 VARIANTES SOLO EN COMPRA */}
         {tieneVariantes && modo === "compra" && (
           <Stack spacing={2} alignItems="center">
             <Typography fontWeight="bold">
@@ -200,7 +189,12 @@ export default function DetalleModal({
               <Chip label="Sin stock" color="error" />
             )}
 
-            <Stack direction="row" flexWrap="wrap" gap={1.5} justifyContent="center">
+            <Stack
+              direction="row"
+              flexWrap="wrap"
+              gap={1.5}
+              justifyContent="center"
+            >
               {producto.variantes.map((v) => {
                 const isSelected = varianteSeleccionada?.id === v.id;
 
@@ -246,13 +240,20 @@ export default function DetalleModal({
           </Stack>
         )}
 
-        {/* BOTÓN FINAL */}
-        <Box sx={{ width: "100%", mt: 2, display: "flex", justifyContent: "center" }}>
+        {/* 🔥 BOTÓN FINAL */}
+        <Box
+          sx={{
+            width: "100%",
+            mt: 2,
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
           {modo === "info" ? (
             <Button
               variant="contained"
               fullWidth
-              onClick={() => setModo && setModo("compra")}
+              onClick={() => setModo("compra")} // 🔥 CAMBIO REAL
               sx={{
                 maxWidth: 400,
                 width: "100%",
