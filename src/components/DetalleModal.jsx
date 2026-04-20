@@ -250,38 +250,61 @@ export default function DetalleModal({
         )}
 
         {/* BOTÓN */}
-        <Box sx={{ width: "100%", mt: 2, display: "flex", justifyContent: "center" }}>
-          <Button
-            variant="contained"
-            startIcon={<AddShoppingCartIcon />}
-            onClick={handleAgregar}
-            sx={{
-              ...botonAgregarSx(stockTotal),
-              maxWidth: 400,
-              width: "100%",
-            }}
-            disabled={
-              modo === "info"
-                ? true
-                : tieneVariantes
-                ? !varianteSeleccionada ||
-                  varianteSeleccionada.stock === 0
-                : stockTotal === 0
-            }
-          >
-            {modo === "info"
-              ? "Ver producto completo"
-              : tieneVariantes
-              ? varianteSeleccionada
-                ? varianteSeleccionada.stock > 0
-                  ? "Agregar al carrito"
-                  : "Agotado"
-                : "Seleccionar opciones"
-              : stockTotal > 0
-              ? "Agregar al carrito"
-              : "Agotado"}
-          </Button>
-        </Box>
+        <Box
+  sx={{
+    width: "100%",
+    mt: 2,
+    display: "flex",
+    justifyContent: "center",
+  }}
+>
+  {modo === "info" ? (
+    // 🔵 MODO INFO
+    <Button
+      variant="contained"
+      fullWidth
+      onClick={() => {
+        // 👇 cambiar a modo compra SIN cerrar modal
+        setVarianteSeleccionada(null);
+      }}
+      sx={{
+        maxWidth: 400,
+        width: "100%",
+        backgroundColor: "#2196f3",
+      }}
+    >
+      Seleccionar opciones
+    </Button>
+  ) : (
+    // 🟢 MODO COMPRA
+    <Button
+      variant="contained"
+      startIcon={<AddShoppingCartIcon />}
+      onClick={handleAgregar}
+      sx={{
+        ...botonAgregarSx(stockTotal),
+        maxWidth: 400,
+        width: "100%",
+      }}
+      disabled={
+        tieneVariantes
+          ? !varianteSeleccionada ||
+            varianteSeleccionada.stock === 0
+          : stockTotal === 0
+      }
+    >
+      {tieneVariantes
+        ? varianteSeleccionada
+          ? varianteSeleccionada.stock > 0
+            ? "Agregar al carrito"
+            : "Agotado"
+          : "Seleccionar opciones"
+        : stockTotal > 0
+        ? "Agregar al carrito"
+        : "Agotado"}
+    </Button>
+  )}
+</Box>
       </Stack>
     </Dialog>
   );
