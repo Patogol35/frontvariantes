@@ -31,7 +31,10 @@ export default function Home() {
   const [categoria, setCategoria] = useState("");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("asc");
+
+  // 🔥 NUEVOS ESTADOS
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+  const [modoModal, setModoModal] = useState("info"); // 👈 CLAVE
   const [lightbox, setLightbox] = useState(null);
 
   const categorias = useCategorias();
@@ -45,8 +48,15 @@ export default function Home() {
 
   const { handleAdd } = useCarritoHandler();
 
-  const handleVerDetalle = (producto) => setProductoSeleccionado(producto);
-  const handleCerrarDetalle = () => setProductoSeleccionado(null);
+  // 🔥 FUNCIÓN CLAVE
+  const handleVerDetalle = (producto, modo = "info") => {
+    setProductoSeleccionado(producto);
+    setModoModal(modo);
+  };
+
+  const handleCerrarDetalle = () => {
+    setProductoSeleccionado(null);
+  };
 
   if (loading) {
     return (
@@ -137,7 +147,7 @@ export default function Home() {
               <ProductoCard
                 producto={prod}
                 onAgregar={handleAdd}
-                onVerDetalle={() => handleVerDetalle(prod)}
+                onVerDetalle={handleVerDetalle} // 🔥 CLAVE
               />
             </motion.div>
           </Grid>
@@ -154,14 +164,16 @@ export default function Home() {
         />
       </Box>
 
+      {/* 🔥 MODAL CON MODO */}
       <DetalleModal
         producto={productoSeleccionado}
         open={Boolean(productoSeleccionado)}
         onClose={handleCerrarDetalle}
-        onAdd={handleAdd}
+        modo={modoModal} // 🔥 AQUÍ ESTÁ LA MAGIA
         setLightbox={setLightbox}
       />
 
+      {/* LIGHTBOX */}
       <LightboxModal
         open={!!lightbox}
         onClose={() => setLightbox(null)}
