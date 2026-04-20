@@ -52,17 +52,38 @@ export function useProductos({ categoria, search, sort, itemsPerPage }) {
       : producto.precio || 0;
   };
 
+  const getStockTotal = (producto) => {
+    if (!producto.variantes?.length) return 0;
+
+    return producto.variantes.reduce(
+      (acc, v) => acc + (v.stock || 0),
+      0
+    );
+  };
+
   return (productos || [])
     .filter((p) =>
       debouncedSearch === ""
         ? true
         : p.nombre?.toLowerCase().includes(debouncedSearch)
     )
-    .sort((a, b) =>
-      sort === "asc"
-        ? getPrecio(a) - getPrecio(b)
-        : getPrecio(b) - getPrecio(a)
-    );
+    .sort((a, b) => {
+      // 🔥 FAKE MÁS VENDIDOS
+      if (sort === "ventas") {
+        return getStockTotal(a) - getStockTotal(b);
+      }
+
+      // 💰 PRECIO
+      if (sort === "asc") {
+        return getPrecio(a) - getPrecio(b);
+      }
+
+      if (sort === "desc") {
+        return getPrecio(b) - getPrecio(a);
+      }
+
+      return 0;
+    });
 }, [productos, debouncedSearch, sort]);
 
   // 🔹 Paginación (único lugar donde se calcula)
