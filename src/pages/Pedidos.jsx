@@ -125,80 +125,98 @@ export default function Pedidos() {
 
             {/* ITEMS */}
             <List dense>
-              {(p.items ?? []).map((item, i, arr) => (
-                <Box key={i}>
-                  <ListItem sx={pedidosStyles.listItem}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        gap: 2,
-                        alignItems: "center",
-                        width: "100%",
-                      }}
-                    >
-                      {/* IMAGEN */}
+              {(p.items ?? []).map((item, i, arr) => {
+                
+                // 🧠 VARIANTE DINÁMICA (igual que carrito/modal)
+                const varianteLabel = item.variante
+                  ? [
+                      item.variante.talla,
+                      item.variante.color,
+                      item.variante.modelo,
+                      item.variante.capacidad,
+                    ]
+                      .filter(Boolean)
+                      .map((x) => x.trim())
+                      .filter((v, i, arr) => arr.indexOf(v) === i)
+                      .join(" • ")
+                  : null;
+
+                // 🖼 IMAGEN CON FALLBACK
+                const imagen =
+                  item.variante?.imagenes?.[0]?.imagen ||
+                  item.producto?.imagenes?.[0]?.imagen ||
+                  item.producto?.imagen ||
+                  "/placeholder.png";
+
+                return (
+                  <Box key={i}>
+                    <ListItem sx={pedidosStyles.listItem}>
                       <Box
-                        component="img"
-                        src={
-                          item.variante?.imagenes?.[0]?.imagen ||
-                          item.producto?.imagenes?.[0]?.imagen ||
-                          item.producto?.imagen
-                        }
-                        alt={item.producto?.nombre}
                         sx={{
-                          width: 60,
-                          height: 60,
-                          objectFit: "cover",
-                          borderRadius: 2,
+                          display: "flex",
+                          gap: 2,
+                          alignItems: "center",
+                          width: "100%",
                         }}
-                      />
+                      >
+                        {/* IMAGEN */}
+                        <Box
+                          component="img"
+                          src={imagen}
+                          alt={item.producto?.nombre}
+                          sx={{
+                            width: 60,
+                            height: 60,
+                            objectFit: "cover",
+                            borderRadius: 2,
+                          }}
+                        />
 
-                      {/* INFO */}
-                      <Box sx={{ flex: 1 }}>
-                        <Typography fontWeight="bold">
-                          {item.producto?.nombre}
-                        </Typography>
+                        {/* INFO */}
+                        <Box sx={{ flex: 1 }}>
+                          <Typography fontWeight="bold">
+                            {item.producto?.nombre}
+                          </Typography>
 
-                        {/* Variante limpia */}
-                        {item.variante && (
+                          {/* 🔥 VARIANTE COMPLETA */}
+                          {varianteLabel && (
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                            >
+                              {varianteLabel}
+                            </Typography>
+                          )}
+
+                          <Typography variant="body2">
+                            {item.cantidad} x $
+                            {Number(item.precio_unitario ?? 0).toFixed(2)}
+                          </Typography>
+
                           <Typography
                             variant="body2"
-                            color="text.secondary"
+                            fontWeight="bold"
                           >
-                            {[item.variante.talla, item.variante.color]
-                              .filter(Boolean)
-                              .join(" • ")}
+                            Subtotal: $
+                            {Number(item.subtotal ?? 0).toFixed(2)}
                           </Typography>
+                        </Box>
+
+                        {/* ESTADO */}
+                        {item.estado && (
+                          <Chip
+                            label={item.estado}
+                            color={getEstadoColor(item.estado)}
+                            size="small"
+                          />
                         )}
-
-                        <Typography variant="body2">
-                          {item.cantidad} x $
-                          {Number(item.precio_unitario ?? 0).toFixed(2)}
-                        </Typography>
-
-                        <Typography
-                          variant="body2"
-                          fontWeight="bold"
-                        >
-                          Subtotal: $
-                          {Number(item.subtotal ?? 0).toFixed(2)}
-                        </Typography>
                       </Box>
+                    </ListItem>
 
-                      {/* ESTADO */}
-                      {item.estado && (
-                        <Chip
-                          label={item.estado}
-                          color={getEstadoColor(item.estado)}
-                          size="small"
-                        />
-                      )}
-                    </Box>
-                  </ListItem>
-
-                  {i < arr.length - 1 && <Divider />}
-                </Box>
-              ))}
+                    {i < arr.length - 1 && <Divider />}
+                  </Box>
+                );
+              })}
             </List>
           </CardContent>
         </Card>
