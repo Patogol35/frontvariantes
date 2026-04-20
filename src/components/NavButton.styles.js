@@ -10,7 +10,6 @@ const navButtonStyles = (theme, isActive, item, alwaysColoredPaths) => ({
 
   "& .MuiButton-startIcon": { color: "#fff" },
 
-  // 🔥 usar backgroundColor (no background)
   backgroundColor: {
     xs: item.color,
     md:
@@ -22,7 +21,6 @@ const navButtonStyles = (theme, isActive, item, alwaysColoredPaths) => ({
   boxShadow: isActive ? "0 0 20px rgba(255,255,255,0.5)" : "none",
   transform: isActive ? "scale(1.04)" : "scale(1)",
 
-  // 🔥 hover REAL
   "&:hover": {
     backgroundColor: item.color,
     boxShadow: isActive
