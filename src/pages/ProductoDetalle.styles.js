@@ -96,7 +96,7 @@ export const imagenSlideSx = {
 // IMAGEN
 // ================================
 export const imagenSx = {
-  maxWidth: "60%",
+  maxWidth: "70%",
   maxHeight: 420,
   objectFit: "contain",
   borderRadius: 3,
