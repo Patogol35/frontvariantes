@@ -8,6 +8,8 @@ export const containerSx = {
 
   display: "flex",
   flexDirection: "column",
+  alignItems: "center",     // 🔥 centra horizontal
+  textAlign: "center",      // 🔥 centra textos
   gap: 4,
 };
 
@@ -16,7 +18,8 @@ export const containerSx = {
 // BOTÓN VOLVER
 // ================================
 export const botonVolverSx = (theme) => ({
-  alignSelf: "flex-start",
+  alignSelf: "center",      // 🔥 centrado
+
   borderRadius: "999px",
   textTransform: "none",
   fontWeight: 500,
@@ -34,7 +37,7 @@ export const botonVolverSx = (theme) => ({
 
   "&:hover": {
     backgroundColor: theme.palette.action.hover,
-    transform: "translateX(-4px)",
+    transform: "scale(1.05)",
   },
 });
 
@@ -70,7 +73,7 @@ export const imagenContainerSx = (theme) => ({
 
 
 // ================================
-// 🔥 IMAGEN SLIDE (FALTABA ESTO)
+// IMAGEN SLIDE
 // ================================
 export const imagenSlideSx = {
   display: "flex",
@@ -100,7 +103,7 @@ export const imagenSx = {
 export const tituloSx = {
   fontWeight: 700,
   fontSize: { xs: "1.5rem", md: "2rem" },
-  lineHeight: 1.2,
+  textAlign: "center",
 };
 
 
@@ -110,6 +113,8 @@ export const tituloSx = {
 export const precioSx = (theme) => ({
   fontWeight: 800,
   fontSize: "2rem",
+  textAlign: "center",
+
   color:
     theme.palette.mode === "dark"
       ? "#66b2ff"
@@ -121,8 +126,7 @@ export const precioSx = (theme) => ({
 // STOCK
 // ================================
 export const stockSx = (stock) => ({
-  alignSelf: "flex-start",
-  display: "inline-flex",
+  alignSelf: "center",   // 🔥 centrado total
 
   px: 1.8,
   py: 0.5,
@@ -150,6 +154,7 @@ export const stockSx = (stock) => ({
 // ================================
 export const variantesContainerSx = {
   display: "flex",
+  justifyContent: "center",   // 🔥 centra horizontal
   flexWrap: "wrap",
   gap: 1,
 };
@@ -161,9 +166,6 @@ export const varianteBtnSx = (isSelected, stock, theme) => ({
 
   px: 2,
   py: 0.7,
-
-  width: "auto",
-  minWidth: "unset",
 
   border: "1px solid",
   borderColor: isSelected
@@ -193,6 +195,7 @@ export const descripcionSx = {
   color: "text.secondary",
   lineHeight: 1.7,
   fontSize: "0.95rem",
+  textAlign: "center",
 };
 
 
@@ -200,7 +203,7 @@ export const descripcionSx = {
 // BOTÓN AGREGAR
 // ================================
 export const botonAgregarSx = (stock) => ({
-  alignSelf: "flex-start",
+  alignSelf: "center",   // 🔥 centrado total
 
   borderRadius: "999px",
   px: 3,
