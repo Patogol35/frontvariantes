@@ -50,7 +50,7 @@ export default function ProductoDetalle() {
   const [varianteSeleccionada, setVarianteSeleccionada] = useState(null);
   const [imagenActiva, setImagenActiva] = useState("");
 
-  // 🔥 FETCH DEL PRODUCTO
+  // 🔥 FETCH
   useEffect(() => {
     const fetchProducto = async () => {
       try {
@@ -67,14 +67,14 @@ export default function ProductoDetalle() {
     fetchProducto();
   }, [id]);
 
-  // 🔥 cerrar zoom si abres menú
+  // 🔥 cerrar zoom
   useEffect(() => {
     const handleMenuOpen = () => setZoomOpen(false);
     window.addEventListener("menuOpen", handleMenuOpen);
     return () => window.removeEventListener("menuOpen", handleMenuOpen);
   }, []);
 
-  // 🔴 LOADER
+  // 🔴 LOADING
   if (!producto) return <Typography>Cargando...</Typography>;
 
   const tieneVariantes = producto.variantes?.length > 0;
@@ -118,7 +118,6 @@ export default function ProductoDetalle() {
     );
   }, [producto]);
 
-  // 🛒 AGREGAR
   const handleAdd = async () => {
     if (!isAuthenticated) {
       toast.info("Inicia sesión para agregar productos");
@@ -159,6 +158,7 @@ export default function ProductoDetalle() {
 
   return (
     <Box sx={containerSx}>
+      {/* VOLVER */}
       <Button
         startIcon={<ArrowBackIcon />}
         variant="outlined"
@@ -199,4 +199,104 @@ export default function ProductoDetalle() {
                   Selecciona una opción:
                 </Typography>
 
-                <Stack
+                <Stack direction="row" sx={variantesContainerSx}>
+                  {producto.variantes.map((v) => {
+                    const isSelected =
+                      varianteSeleccionada?.id === v.id;
+
+                    const label = [...new Set(
+                      [v.talla, v.color, v.modelo, v.capacidad]
+                        .filter(Boolean)
+                        .map((x) => x.trim())
+                    )].join(" - ");
+
+                    return (
+                      <Button
+                        key={v.id}
+                        onClick={() => setVarianteSeleccionada(v)}
+                        disabled={v.stock === 0}
+                        sx={varianteBtnSx(isSelected, v.stock, theme)}
+                      >
+                        {label || "Única"}
+                      </Button>
+                    );
+                  })}
+                </Stack>
+
+                {varianteSeleccionada && (
+                  <Chip
+                    label={`Stock: ${varianteSeleccionada.stock}`}
+                    sx={stockSx(varianteSeleccionada.stock)}
+                  />
+                )}
+              </>
+            )}
+
+            <Divider sx={{ width: "100%" }} />
+
+            <Typography sx={descripcionSx}>
+              {producto.descripcion}
+            </Typography>
+
+            <Button
+              variant="contained"
+              startIcon={<AddShoppingCartIcon />}
+              onClick={handleAdd}
+              disabled={
+                tieneVariantes
+                  ? !varianteSeleccionada ||
+                    varianteSeleccionada.stock === 0
+                  : stockTotal === 0
+              }
+              sx={botonAgregarSx(
+                tieneVariantes
+                  ? varianteSeleccionada?.stock
+                  : stockTotal
+              )}
+            >
+              {tieneVariantes
+                ? varianteSeleccionada
+                  ? varianteSeleccionada.stock > 0
+                    ? "Agregar al carrito"
+                    : "Agotado"
+                  : "Seleccionar opción"
+                : stockTotal > 0
+                ? "Agregar al carrito"
+                : "Agotado"}
+            </Button>
+          </Stack>
+        </Grid>
+      </Grid>
+
+      {/* ZOOM */}
+      <Dialog open={zoomOpen} onClose={() => setZoomOpen(false)} maxWidth="md">
+        <Box sx={{ position: "relative", bgcolor: theme.palette.background.default }}>
+          <IconButton
+            onClick={() => setZoomOpen(false)}
+            sx={{
+              position: "absolute",
+              top: 10,
+              right: 10,
+              zIndex: 2,
+              bgcolor: "rgba(0,0,0,0.7)",
+              color: "#fff",
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+
+          <Box
+            component="img"
+            src={zoomImage}
+            sx={{
+              maxHeight: "80vh",
+              maxWidth: "100%",
+              display: "block",
+              margin: "0 auto",
+            }}
+          />
+        </Box>
+      </Dialog>
+    </Box>
+  );
+            }
