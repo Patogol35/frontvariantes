@@ -181,10 +181,8 @@ export const varianteBtnSx = (isSelected, stock, theme) => {
 
     // 🔥 FONDO
     backgroundColor: isSelected
-      ? "#000" // seleccionado negro
-      : isDark
-      ? "rgba(144,202,249,0.25)" // celeste visible en dark
-      : "#e3f2fd", // celeste en light
+  ? "#000"
+  : "#e3f2fd",
 
     // 🔥 TEXTO
     color: isSelected ? "#fff" : theme.palette.text.primary,
