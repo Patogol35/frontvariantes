@@ -69,13 +69,13 @@ export const imagenContainerSx = (theme) => ({
 
   transition: "all 0.3s ease",
 
-  "&:hover": {
-    transform: "scale(1.01)",
-  },
+  //"&:hover": {
+   // transform: "scale(1.01)",
+ // },
 
-  "&:hover img": {
-    transform: "scale(1.08)",
-  },
+ // "&:hover img": {
+   // transform: "scale(1.08)",
+  // },
 });
 
 
@@ -99,7 +99,7 @@ export const imagenSx = {
   maxHeight: 420,
   objectFit: "contain",
   borderRadius: 3,
-  //transition: "transform 0.1s ease",
+  transition: "transform 0.5s ease",
 };
 
 
