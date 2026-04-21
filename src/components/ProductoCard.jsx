@@ -209,18 +209,18 @@ export default function ProductoCard({ producto, onAgregar }) {
 
           {/* 🔵 BOTÓN DETALLES */}
           <Button
-            variant="outlined"
-            fullWidth
-            startIcon={<InfoIcon />}
-            sx={botonDetallesSx}
-            onClick={() =>
-              navigate(`/producto/${producto.id}`, {
-                state: { producto },
-              })
-            }
-          >
-            Ver detalles
-          </Button>
+  variant="contained"
+  fullWidth
+  startIcon={<InfoIcon />}
+  sx={botonAgregarSx(stockTotal)}
+  onClick={() =>
+    navigate(`/producto/${producto.id}`, {
+      state: { producto },
+    })
+  }
+>
+  Ver detalles
+</Button>
         </Stack>
       </Box>
     </Card>
