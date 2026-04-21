@@ -30,7 +30,7 @@ import {
   botonDetallesSx,
 } from "./ProductoCard.styles";
 
-export default function ProductoCard({ producto }) {
+export default function ProductoCard({ producto, onVerDetalle, onAgregar }) {
   const { isAuthenticated } = useAuth();
   const { agregarAlCarrito } = useCarrito();
   const navigate = useNavigate();
@@ -38,8 +38,8 @@ export default function ProductoCard({ producto }) {
   // 🖼 IMÁGENES
   const imagenes = useMemo(() => {
     const imgs = [
-      producto?.imagen,
-      ...(producto?.imagenes?.map((img) => img.imagen) || []),
+      producto.imagen,
+      ...(producto.imagenes?.map((img) => img.imagen) || []),
     ].filter(Boolean);
 
     return [...new Set(imgs)];
@@ -49,30 +49,30 @@ export default function ProductoCard({ producto }) {
 
   // 📦 STOCK
   const stockTotal = useMemo(() => {
-    if (!producto?.variantes || producto.variantes.length === 0) return 1;
+    if (!producto.variantes || producto.variantes.length === 0) return 1;
     return producto.variantes.reduce((acc, v) => acc + (v.stock || 0), 0);
   }, [producto]);
 
-  const tieneVariantes = (producto?.variantes || []).length > 0;
+  const tieneVariantes = producto.variantes?.length > 0;
 
-  const tieneStockVariantes = (producto?.variantes || []).some(
+  const tieneStockVariantes = producto.variantes?.some(
     (v) => v.stock > 0
   );
 
   // 💰 PRECIO DINÁMICO
   const precioMinimo = useMemo(() => {
-    if (!tieneVariantes) return producto?.precio;
+    if (!tieneVariantes) return producto.precio;
 
-    const precios = (producto?.variantes || [])
+    const precios = producto.variantes
       .map((v) => v.precio)
       .filter(Boolean);
 
     return precios.length > 0
       ? Math.min(...precios)
-      : producto?.precio;
+      : producto.precio;
   }, [producto, tieneVariantes]);
 
-  // 🛒 AGREGAR / IR A DETALLE
+  // 🛒 AGREGAR / SELECCIONAR
   const onAdd = async () => {
     if (!isAuthenticated) {
       toast.error("Debes iniciar sesión para agregar productos");
@@ -80,15 +80,26 @@ export default function ProductoCard({ producto }) {
       return;
     }
 
-    // 🔥 SI TIENE VARIANTES → IR A DETALLE EN MODO COMPRA
+    // 🔥 SI TIENE VARIANTES → ABRIR MODAL EN MODO COMPRA
     if (tieneVariantes) {
-      navigate(`/producto/${producto.id}`, {
-        state: { producto, modo: "compra" },
-      });
+      toast.info("Selecciona opciones 👇");
+
+      if (onVerDetalle) {
+        onVerDetalle(producto, "compra"); // 👈 CLAVE
+      } else {
+        navigate(`/producto/${producto.id}`, {
+          state: { producto },
+        });
+      }
       return;
     }
 
     // 🔥 SIN VARIANTES → AGREGA DIRECTO
+    if (onAgregar) {
+      onAgregar(producto);
+      return;
+    }
+
     try {
       await agregarAlCarrito(producto.id, null, 1);
       toast.success(`${producto.nombre} agregado al carrito ✅`);
@@ -104,11 +115,11 @@ export default function ProductoCard({ producto }) {
         <Box
           component="img"
           src={imagenActiva || "/placeholder.png"}
-          alt={producto?.nombre}
+          alt={producto.nombre}
           sx={imagenSx}
         />
 
-        {producto?.nuevo && (
+        {producto.nuevo && (
           <Chip
             icon={<StarIcon />}
             label="Nuevo"
@@ -152,7 +163,7 @@ export default function ProductoCard({ producto }) {
       {/* CONTENIDO */}
       <Box sx={contenidoSx}>
         <Typography variant="h6" fontWeight="bold" sx={tituloSx}>
-          {producto?.nombre}
+          {producto.nombre}
         </Typography>
 
         {/* 💰 PRECIO */}
@@ -164,9 +175,7 @@ export default function ProductoCard({ producto }) {
         >
           <MonetizationOnIcon color="primary" />
           <Typography variant="h6" color="primary" fontWeight="bold">
-            {tieneVariantes
-              ? `Desde $${precioMinimo}`
-              : `$${producto?.precio}`}
+            {tieneVariantes ? `Desde $${precioMinimo}` : `$${producto.precio}`}
           </Typography>
         </Stack>
 
@@ -203,9 +212,11 @@ export default function ProductoCard({ producto }) {
             startIcon={<InfoIcon />}
             sx={botonDetallesSx}
             onClick={() =>
-              navigate(`/producto/${producto.id}`, {
-                state: { producto, modo: "info" },
-              })
+              onVerDetalle
+                ? onVerDetalle(producto, "info") // 👈 CLAVE
+                : navigate(`/producto/${producto.id}`, {
+                    state: { producto },
+                  })
             }
           >
             Ver detalles
@@ -214,4 +225,4 @@ export default function ProductoCard({ producto }) {
       </Box>
     </Card>
   );
-          }
+        }
