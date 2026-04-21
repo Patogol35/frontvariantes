@@ -163,62 +163,50 @@ export default function ProductoCard({ producto, onAgregar }) {
 
       {/* CONTENIDO */}
       <Box sx={contenidoSx}>
-        <Typography variant="h6" fontWeight="bold" sx={tituloSx}>
-          {producto.nombre}
-        </Typography>
+  {/* 🔹 PARTE SUPERIOR */}
+  <Box>
+    <Typography variant="h6" fontWeight="bold" sx={tituloSx}>
+      {producto.nombre}
+    </Typography>
 
-        {/* 💰 PRECIO */}
-        <Stack
-          direction="row"
-          alignItems="center"
-          spacing={0.5}
-          sx={precioStackSx}
-        >
-          <MonetizationOnIcon color="primary" />
-          <Typography variant="h6" color="primary" fontWeight="bold">
-            {tieneVariantes
-              ? `Desde $${precioMinimo}`
-              : `$${producto.precio}`}
-          </Typography>
-        </Stack>
+    {/* 💰 PRECIO */}
+    <Stack
+      direction="row"
+      alignItems="center"
+      spacing={0.5}
+      sx={precioStackSx}
+    >
+      <MonetizationOnIcon color="primary" />
+      <Typography variant="h6" color="primary" fontWeight="bold">
+        {tieneVariantes
+          ? `Desde $${precioMinimo}`
+          : `$${producto.precio}`}
+      </Typography>
+    </Stack>
 
-        <Divider sx={dividerSx} />
+    <Divider sx={dividerSx} />
+  </Box>
 
-        {/* BOTONES */}
-        <Stack spacing={1}>
-          {/* 🟢 BOTÓN PRINCIPAL */}
-          <Button
-  variant="contained"
-  fullWidth
-  startIcon={<ShoppingCartCheckoutIcon />}
-  sx={botonAgregarSx(stockTotal)}
-  onClick={() =>
-    navigate(`/producto/${producto.id}`, {
-      state: { producto },
-    })
-  }
-  disabled={stockTotal === 0}
->
-  {stockTotal > 0 ? "Ver opciones" : "Agotado"}
-</Button>
-          {/* 🔵 BOTÓN DETALLES */}
-          {/*
-<Button
-  variant="contained"
-  fullWidth
-  startIcon={<InfoIcon />}
-  sx={botonAgregarSx(stockTotal)}
-  onClick={() =>
-    navigate(`/producto/${producto.id}`, {
-      state: { producto },
-    })
-  }
->
-  Ver detalles
-</Button>
-*/}
-        </Stack>
-      </Box>
+  {/* 🔹 BOTONES ABAJO */}
+  <Box sx={{ mt: "auto" }}>
+    <Stack spacing={1}>
+      <Button
+        variant="contained"
+        fullWidth
+        startIcon={<ShoppingCartCheckoutIcon />}
+        sx={botonAgregarSx(stockTotal)}
+        onClick={() =>
+          navigate(`/producto/${producto.id}`, {
+            state: { producto },
+          })
+        }
+        disabled={stockTotal === 0}
+      >
+        {stockTotal > 0 ? "Ver opciones" : "Agotado"}
+      </Button>
+    </Stack>
+  </Box>
+</Box>
     </Card>
   );
 }
