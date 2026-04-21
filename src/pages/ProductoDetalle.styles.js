@@ -54,7 +54,7 @@ export const imagenContainerSx = (theme) => ({
   justifyContent: "center",
   alignItems: "center",
 
-  border: "2px solid",
+  border: "1px solid",
   borderColor:
     theme.palette.mode === "dark"
       ? "#fff"
@@ -163,57 +163,50 @@ export const variantesContainerSx = {
   gap: 1,
 };
 
-export const varianteBtnSx = (isSelected, stock, theme) => ({
-  borderRadius: "999px",
-  textTransform: "none",
-  fontWeight: 500,
+export const varianteBtnSx = (isSelected, stock, theme) => {
+  const isDark = theme.palette.mode === "dark";
 
-  px: 2,
-  py: 0.7,
+  const borderBase = isDark ? "#fff" : "#000";
 
-  border: "2px solid",
+  return {
+    borderRadius: "999px",
+    textTransform: "none",
+    fontWeight: 500,
 
-  borderColor: isSelected
-    ? theme.palette.mode === "dark"
-      ? "#fff"
-      : "#000"
-    : theme.palette.mode === "dark"
-      ? "#ffffff55"
-      : "#00000040",
+    px: 2,
+    py: 0.7,
 
-  backgroundColor: isSelected
-    ? theme.palette.mode === "dark"
-      ? "#fff"
-      : "#000"
-    : "transparent",
+    border: "1px solid",
 
-  color: isSelected
-    ? theme.palette.mode === "dark"
-      ? "#000"
-      : "#fff"
-    : theme.palette.text.primary,
+    // 🔥 SIEMPRE blanco/negro
+    borderColor: borderBase,
 
-  opacity: stock === 0 ? 0.4 : 1,
+    // 🔥 seleccionado invierte colores
+    backgroundColor: isSelected
+      ? borderBase
+      : "transparent",
 
-  transition: "all 0.25s ease",
+    color: isSelected
+      ? isDark
+        ? "#000"
+        : "#fff"
+      : theme.palette.text.primary,
 
-  boxShadow: isSelected
-    ? theme.palette.mode === "dark"
-      ? "0 0 0 2px rgba(255,255,255,0.2)"
-      : "0 0 0 2px rgba(0,0,0,0.1)"
-    : "none",
+    opacity: stock === 0 ? 0.4 : 1,
 
-  "&:hover": {
-    borderColor:
-      stock > 0
-        ? theme.palette.mode === "dark"
-          ? "#fff"
-          : "#000"
-        : undefined,
-    transform: stock > 0 ? "scale(1.05)" : "none",
-  },
-});
+    transition: "all 0.25s ease",
 
+    "&:hover": {
+      transform: stock > 0 ? "scale(1.05)" : "none",
+      backgroundColor:
+        stock > 0 && !isSelected
+          ? isDark
+            ? "rgba(255,255,255,0.1)"
+            : "rgba(0,0,0,0.05)"
+          : undefined,
+    },
+  };
+};
 
 // ================================
 // DESCRIPCIÓN
