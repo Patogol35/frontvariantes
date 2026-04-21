@@ -7,28 +7,28 @@ const detalleModalStyles = {
     },
   },
 
-  dialogPaper: {
-    borderRadius: { xs: 0, md: 3 },
-    p: { xs: 2, md: 4 },
-    bgcolor: "#1e1e1e",
-    color: "white",
-    width: "100%",
-    maxWidth: { xs: "95%", md: 700 },
+  dialogPaper: (theme) => ({
+  borderRadius: { xs: 0, md: 3 },
+  p: { xs: 2, md: 4 },
 
-    
-    maxHeight: "90vh",
-    overflowY: "auto",
+  bgcolor: theme.palette.mode === "dark" ? "#121212" : "#fff",
+  color: theme.palette.mode === "dark" ? "#fff" : "#000",
 
-    position: "relative",
-    textAlign: "center",
+  width: "100%",
+  maxWidth: { xs: "95%", md: 700 },
 
-    
-    "@media (orientation: landscape)": {
-      maxHeight: "75vh",
-      marginTop: "5vh",
-      marginBottom: "5vh",
-    },
+  maxHeight: "90vh",
+  overflowY: "auto",
+
+  position: "relative",
+  textAlign: "center",
+
+  "@media (orientation: landscape)": {
+    maxHeight: "75vh",
+    marginTop: "5vh",
+    marginBottom: "5vh",
   },
+}),
 
   botonCerrar: {
     position: "absolute",
