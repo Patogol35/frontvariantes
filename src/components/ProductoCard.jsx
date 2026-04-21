@@ -111,12 +111,13 @@ export default function ProductoCard({ producto, onAgregar }) {
   return (
     <Card sx={cardSx} elevation={0}>
       {/* IMAGEN */}
-      <Box
-  component="img"
-  src={imagenActiva || "/placeholder.png"}
-  alt={producto.nombre}
-  sx={imagenSx}
-/>
+      <Box sx={imagenBoxSx}>
+  <Box
+    component="img"
+    src={imagenActiva || "/placeholder.png"}
+    alt={producto.nombre}
+    sx={imagenSx}
+  />
 
         {producto.nuevo && (
           <Chip
@@ -224,4 +225,4 @@ export default function ProductoCard({ producto, onAgregar }) {
       </Box>
     </Card>
   );
-            }
+}
