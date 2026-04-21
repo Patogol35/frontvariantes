@@ -3,6 +3,7 @@
 // ================================
 export const cardSx = (theme) => ({
   width: 320,
+  minHeight: 480,
   height: 480,
   borderRadius: 3,
 
