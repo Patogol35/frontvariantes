@@ -97,7 +97,7 @@ export const imagenSlideSx = {
 // ================================
 export const imagenSx = {
   maxWidth: "80%",
-  maxHeight: 420,
+  maxHeight: 440,
   objectFit: "contain",
   borderRadius: 3,
   transition: "transform 0.5s ease",
