@@ -185,7 +185,7 @@ export default function ProductoCard({ producto, onAgregar }) {
         <Divider sx={dividerSx} />
 
         {/* BOTONES */}
-        <Stack spacing={1} mt="auto">
+        <Stack spacing={1}>
           {/* 🟢 BOTÓN PRINCIPAL */}
           <Button
   variant="contained"
