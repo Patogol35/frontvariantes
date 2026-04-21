@@ -165,14 +165,15 @@ export const varianteBtnSx = (isSelected, stock, theme) => ({
   px: 2,
   py: 0.7,
 
-  border: "1px solid",
+  border: "2px solid",   // 🔥 más grueso
+
   borderColor: isSelected
     ? theme.palette.primary.main
-    : theme.palette.divider,
+    : theme.palette.grey[400],   // 🔥 más visible
 
   backgroundColor: isSelected
     ? theme.palette.primary.main
-    : "transparent",
+    : theme.palette.background.paper,
 
   color: isSelected ? "#fff" : theme.palette.text.primary,
 
@@ -181,10 +182,11 @@ export const varianteBtnSx = (isSelected, stock, theme) => ({
   transition: "all 0.25s ease",
 
   "&:hover": {
+    borderColor:
+      stock > 0 ? theme.palette.primary.main : undefined,
     transform: stock > 0 ? "scale(1.05)" : "none",
   },
 });
-
 
 // ================================
 // DESCRIPCIÓN
