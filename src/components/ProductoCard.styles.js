@@ -3,18 +3,19 @@
 // ================================
 export const cardSx = (theme) => ({
   width: 320,
-  minHeight: 480, // 🔥 mejor que height fijo
+  height: 480,
   borderRadius: 3,
 
+  // Fondo principal 
   bgcolor:
     theme.palette.mode === "dark"
-      ? "#1f1f1f"
+      ? "#1f1f1f"   // gris oscuro elegante
       : "#ffffff",
 
   border: "1px solid",
   borderColor:
     theme.palette.mode === "dark"
-      ? "#ffffff"
+      ? "#ffffff"   
       : "#000000",
 
   boxShadow:
@@ -30,6 +31,9 @@ export const cardSx = (theme) => ({
   "&:hover": {
     transform: "translateY(-4px)",
   },
+
+  "&:focus": { outline: "none" },
+  "&:focus-visible": { outline: "none" },
 });
 
 
@@ -45,8 +49,8 @@ export const imagenBoxSx = (theme) => ({
 
   bgcolor:
     theme.palette.mode === "dark"
-      ? "#2c2c2c"
-      : "#f2f4f7",
+      ? "#2c2c2c"   // más claro que la card
+      : "#f2f4f7",  // gris suave visible en light
 
   overflow: "hidden",
 });
@@ -60,7 +64,6 @@ export const imagenSx = {
   maxHeight: "100%",
   objectFit: "contain",
   transition: "transform 0.4s ease",
-
   "&:hover": {
     transform: "scale(1.06)",
   },
@@ -89,8 +92,8 @@ export const chipNuevoSx = {
 // CONTENIDO
 // ================================
 export const contenidoSx = {
-  p: 2,
-  flexGrow: 1,
+  p: 2.2,
+  
   display: "flex",
   flexDirection: "column",
 };
@@ -100,7 +103,7 @@ export const contenidoSx = {
 // TÍTULO
 // ================================
 export const tituloSx = {
-  mb: 0.8,
+  mb: 1,
   fontWeight: 600,
   fontSize: "1.05rem",
   lineHeight: 1.4,
@@ -115,7 +118,7 @@ export const tituloSx = {
 // PRECIO
 // ================================
 export const precioStackSx = (theme) => ({
-  mb: 0.8, // 🔥 reducido
+  mb: 2,
   fontSize: "1.3rem",
   fontWeight: 700,
   color:
@@ -129,12 +132,11 @@ export const precioStackSx = (theme) => ({
 // DIVIDER
 // ================================
 export const dividerSx = {
-  my: 0.6, // 🔥 reducido
+  my: 1.2,
 };
 
-
 // ================================
-// BOTÓN PRINCIPAL
+// BOTÓN AGREGAR
 // ================================
 export const botonAgregarSx = (stock) => ({
   borderRadius: 2,
@@ -158,11 +160,14 @@ export const botonAgregarSx = (stock) => ({
         ? "linear-gradient(135deg, #1565c0, #1e88e5)"
         : "#bdbdbd",
   },
+
+  "&:focus": { outline: "none" },
+  "&:focus-visible": { outline: "none" },
 });
 
 
 // ================================
-// BOTÓN DETALLES (por si lo usas)
+// BOTÓN DETALLES
 // ================================
 export const botonDetallesSx = (theme) => ({
   borderRadius: 2,
@@ -192,4 +197,7 @@ export const botonDetallesSx = (theme) => ({
         : "rgba(0,0,0,0.05)",
     transform: "scale(1.03)",
   },
+
+  "&:focus": { outline: "none" },
+  "&:focus-visible": { outline: "none" },
 });
