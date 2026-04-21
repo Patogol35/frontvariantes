@@ -48,8 +48,16 @@ export default function ProductoDetalle() {
   const [zoomImage, setZoomImage] = useState("");
   const [varianteSeleccionada, setVarianteSeleccionada] = useState(null);
 useEffect(() => {
+  const handleMenuOpen = () => {
     setZoomOpen(false);
-  }, [location]);
+  };
+
+  window.addEventListener("menuOpen", handleMenuOpen);
+
+  return () => {
+    window.removeEventListener("menuOpen", handleMenuOpen);
+  };
+}, []);
   
   if (!producto) return <Typography>Producto no encontrado</Typography>;
 
