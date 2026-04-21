@@ -10,6 +10,7 @@ import {
   Divider,
   Dialog,
   IconButton,
+  useTheme,
 } from "@mui/material";
 import { useCarrito } from "../context/CarritoContext";
 import { useAuth } from "../context/AuthContext";
@@ -19,12 +20,28 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import CloseIcon from "@mui/icons-material/Close";
 import Slider from "react-slick";
 
+// ✅ IMPORT CORRECTO (incluye stockSx)
+import {
+  containerSx,
+  botonVolverSx,
+  imagenContainerSx,
+  imagenSlideSx,
+  imagenSx,
+  tituloSx,
+  precioSx,
+  varianteBtnSx,
+  descripcionSx,
+  botonAgregarSx,
+  stockSx,
+} from "./ProductoDetalle.styles";
+
 export default function ProductoDetalle() {
   const { state } = useLocation();
   const producto = state?.producto;
   const { agregarAlCarrito } = useCarrito();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const theme = useTheme();
 
   const [zoomOpen, setZoomOpen] = useState(false);
   const [zoomImage, setZoomImage] = useState("");
@@ -34,7 +51,6 @@ export default function ProductoDetalle() {
 
   const tieneVariantes = producto.variantes?.length > 0;
 
-  // IMÁGENES
   const imagenes = useMemo(() => {
     if (varianteSeleccionada?.imagenes?.length > 0) {
       return varianteSeleccionada.imagenes.map((img) => img.imagen);
@@ -58,7 +74,8 @@ export default function ProductoDetalle() {
     }
   }, [varianteSeleccionada, imagenes]);
 
-  const precioActual = varianteSeleccionada?.precio ?? producto.precio;
+  const precioActual =
+    varianteSeleccionada?.precio ?? producto.precio;
 
   const stockTotal = useMemo(() => {
     if (!producto.variantes?.length) return producto.stock || 1;
@@ -85,6 +102,7 @@ export default function ProductoDetalle() {
         varianteSeleccionada?.id || null,
         1
       );
+
       toast.success(`"${producto.nombre}" agregado ✅`);
     } catch (e) {
       toast.error(e.message);
@@ -106,19 +124,13 @@ export default function ProductoDetalle() {
   };
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: "auto", p: { xs: 2, md: 4 } }}>
+    <Box sx={containerSx}>
       {/* VOLVER */}
       <Button
         startIcon={<ArrowBackIcon />}
         variant="outlined"
+        sx={botonVolverSx(theme)}
         onClick={() => navigate(-1)}
-        sx={{
-          mb: 3,
-          borderRadius: "999px",
-          textTransform: "none",
-          px: 2,
-          alignSelf: "flex-start",
-        }}
       >
         Regresar
       </Button>
@@ -126,40 +138,11 @@ export default function ProductoDetalle() {
       <Grid container spacing={5}>
         {/* IMÁGENES */}
         <Grid item xs={12} md={6}>
-          <Box
-            sx={{
-              bgcolor: "#fafafa",
-              borderRadius: 4,
-              p: 2,
-              boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
-            }}
-          >
+          <Box sx={imagenContainerSx(theme)}>
             <Slider {...settings}>
               {imagenes.map((img, i) => (
-                <Box
-                  key={i}
-                  onClick={() => handleZoom(img)}
-                  sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    height: { xs: 300, md: 500 },
-                    cursor: "pointer",
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src={img}
-                    alt=""
-                    sx={{
-                      maxWidth: "100%",
-                      maxHeight: "100%",
-                      objectFit: "contain",
-                      borderRadius: 3,
-                      transition: "0.4s",
-                      "&:hover": { transform: "scale(1.05)" },
-                    }}
-                  />
+                <Box key={i} onClick={() => handleZoom(img)} sx={imagenSlideSx}>
+                  <Box component="img" src={img} alt="" sx={imagenSx} />
                 </Box>
               ))}
             </Slider>
@@ -168,13 +151,13 @@ export default function ProductoDetalle() {
 
         {/* DETALLE */}
         <Grid item xs={12} md={6}>
-          {/* 🔥 CLAVE: evita que todo se estire */}
+          {/* 🔥 FIX PRINCIPAL */}
           <Stack spacing={3} alignItems="flex-start">
-            <Typography variant="h4" fontWeight="bold">
+            <Typography variant="h4" sx={tituloSx}>
               {producto.nombre}
             </Typography>
 
-            <Typography variant="h5" color="primary">
+            <Typography variant="h5" sx={precioSx(theme)}>
               ${precioActual}
             </Typography>
 
@@ -201,27 +184,7 @@ export default function ProductoDetalle() {
                         key={v.id}
                         onClick={() => setVarianteSeleccionada(v)}
                         disabled={v.stock === 0}
-                        sx={{
-                          borderRadius: "999px",
-                          textTransform: "none",
-                          px: 2,
-                          py: 0.6,
-
-                          width: "auto",
-                          minWidth: "unset",
-
-                          border: "1px solid",
-                          borderColor: isSelected ? "#1976d2" : "#ddd",
-
-                          backgroundColor: isSelected ? "#1976d2" : "#fff",
-                          color: isSelected ? "#fff" : "#333",
-
-                          opacity: v.stock === 0 ? 0.4 : 1,
-
-                          "&:hover": {
-                            transform: "scale(1.05)",
-                          },
-                        }}
+                        sx={varianteBtnSx(isSelected, v.stock, theme)}
                       >
                         {label || "Única"}
                       </Button>
@@ -229,20 +192,11 @@ export default function ProductoDetalle() {
                   })}
                 </Stack>
 
+                {/* 🔥 FIX STOCK */}
                 {varianteSeleccionada && (
                   <Chip
                     label={`Stock: ${varianteSeleccionada.stock}`}
-                    sx={{
-                      width: "auto",
-                      alignSelf: "flex-start",
-                      borderRadius: "999px",
-                      fontWeight: 600,
-                    }}
-                    color={
-                      varianteSeleccionada.stock > 0
-                        ? "success"
-                        : "default"
-                    }
+                    sx={stockSx(varianteSeleccionada.stock)}
                   />
                 )}
               </>
@@ -250,7 +204,7 @@ export default function ProductoDetalle() {
 
             <Divider sx={{ width: "100%" }} />
 
-            <Typography sx={{ color: "text.secondary" }}>
+            <Typography sx={descripcionSx}>
               {producto.descripcion}
             </Typography>
 
@@ -265,22 +219,11 @@ export default function ProductoDetalle() {
                     varianteSeleccionada.stock === 0
                   : stockTotal === 0
               }
-              sx={{
-                alignSelf: "flex-start",
-                width: "auto",
-
-                borderRadius: "999px",
-                px: 3,
-                py: 1.2,
-                fontWeight: 600,
-
-                background:
-                  "linear-gradient(135deg, #1976d2, #42a5f5)",
-
-                "&:hover": {
-                  transform: "scale(1.05)",
-                },
-              }}
+              sx={botonAgregarSx(
+                tieneVariantes
+                  ? varianteSeleccionada?.stock
+                  : stockTotal
+              )}
             >
               {tieneVariantes
                 ? varianteSeleccionada
@@ -320,4 +263,4 @@ export default function ProductoDetalle() {
       </Dialog>
     </Box>
   );
-    }
+}
