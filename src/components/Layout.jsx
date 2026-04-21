@@ -9,12 +9,15 @@ export default function Layout() {
   const theme = useTheme();
   const navigate = useNavigate();
 
-  // 🛒 CONTEXTO DEL CARRITO
-  const { carrito } = useCarrito();
+  // ✅ USAR items (no carrito)
+  const { items } = useCarrito();
 
   // 🔢 TOTAL DE PRODUCTOS
   const totalItems =
-    carrito?.reduce((acc, item) => acc + item.cantidad, 0) || 0;
+    items?.reduce(
+      (acc, item) => acc + (item.cantidad || item.quantity || 0),
+      0
+    ) || 0;
 
   return (
     <Box
