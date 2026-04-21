@@ -1,3 +1,6 @@
+import ShoppingCartCheckoutIcon from "@mui/icons-material/ShoppingCartCheckout";
+
+
 // ================================
 // CONTENEDOR PRINCIPAL
 // ================================
@@ -27,8 +30,6 @@ export const botonVolverSx = (theme) => ({
 
   color: theme.palette.text.primary,
 
-  backdropFilter: "blur(6px)",
-
   transition: "all 0.25s ease",
 
   "&:hover": {
@@ -45,6 +46,10 @@ export const imagenContainerSx = (theme) => ({
   bgcolor: theme.palette.background.paper,
   borderRadius: 4,
   p: 2,
+
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
 
   border: "1px solid",
   borderColor: theme.palette.divider,
@@ -73,18 +78,20 @@ export const imagenSlideSx = {
   justifyContent: "center",
   alignItems: "center",
   height: { xs: 300, md: 500 },
-  cursor: "pointer",
 };
 
 
 // ================================
-// IMAGEN
+// IMAGEN (centrada real)
 // ================================
 export const imagenSx = {
   maxWidth: "100%",
   maxHeight: "100%",
   objectFit: "contain",
   borderRadius: 3,
+
+  display: "block",
+  margin: "0 auto",
 
   transition: "transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)",
 
@@ -116,6 +123,22 @@ export const precioSx = (theme) => ({
       : "#0d47a1",
 
   letterSpacing: 0.5,
+});
+
+
+// ================================
+// CHIP STOCK (MEJORADO 🔥)
+// ================================
+export const stockChipSx = (stock) => ({
+  width: "fit-content",
+  borderRadius: 999,
+  px: 1.5,
+  py: 0.3,
+  fontSize: "0.75rem",
+  fontWeight: 600,
+
+  backgroundColor: stock > 0 ? "#e8f5e9" : "#ffebee",
+  color: stock > 0 ? "#2e7d32" : "#c62828",
 });
 
 
@@ -168,13 +191,19 @@ export const descripcionSx = {
 
 
 // ================================
-// BOTÓN AGREGAR
+// BOTÓN AGREGAR (FULL WIDTH + ICON 🔥)
 // ================================
 export const botonAgregarSx = (stock) => ({
+  width: "100%", // 🔥 ocupa todo el ancho
   borderRadius: 999,
   py: 1.6,
   fontWeight: 700,
   fontSize: "1rem",
+
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 1,
 
   background:
     stock > 0
@@ -191,10 +220,16 @@ export const botonAgregarSx = (stock) => ({
   transition: "all 0.3s ease",
 
   "&:hover": {
-    transform: stock > 0 ? "scale(1.05)" : "none",
+    transform: stock > 0 ? "scale(1.03)" : "none",
     boxShadow:
       stock > 0
         ? "0 10px 25px rgba(25, 118, 210, 0.6)"
         : "none",
   },
 });
+
+
+// ================================
+// ICONO (usar en el botón)
+// ================================
+export const carritoIcon = ShoppingCartCheckoutIcon;
