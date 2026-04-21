@@ -37,6 +37,7 @@ import {
 
 export default function ProductoDetalle() {
   const { state } = useLocation();
+  const location = useLocation();
   const producto = state?.producto;
   const { agregarAlCarrito } = useCarrito();
   const { isAuthenticated } = useAuth();
@@ -46,7 +47,10 @@ export default function ProductoDetalle() {
   const [zoomOpen, setZoomOpen] = useState(false);
   const [zoomImage, setZoomImage] = useState("");
   const [varianteSeleccionada, setVarianteSeleccionada] = useState(null);
-
+useEffect(() => {
+    setZoomOpen(false);
+  }, [location]);
+  
   if (!producto) return <Typography>Producto no encontrado</Typography>;
 
   const tieneVariantes = producto.variantes?.length > 0;
@@ -254,7 +258,7 @@ export default function ProductoDetalle() {
   <Box
     sx={{
       position: "relative",
-      bgcolor: theme.palette.background.default, // 🔥 dinámico
+      bgcolor: theme.palette.background.default, // 🔥 dinámico claro/oscuro
     }}
   >
     {/* BOTÓN X */}
@@ -266,7 +270,6 @@ export default function ProductoDetalle() {
         right: 10,
         zIndex: 2,
 
-        // 🔥 fondo adaptado
         bgcolor:
           theme.palette.mode === "dark"
             ? "rgba(0,0,0,0.6)"
@@ -285,15 +288,17 @@ export default function ProductoDetalle() {
       <CloseIcon />
     </IconButton>
 
-    {/* IMAGEN */}
+    {/* IMAGEN ZOOM */}
     <Box
       component="img"
       src={zoomImage}
+      onClick={() => setZoomOpen(false)} // 👈 opcional (click para cerrar)
       sx={{
         maxHeight: "80vh",
         maxWidth: "100%",
         display: "block",
         margin: "0 auto",
+        cursor: "zoom-out",
       }}
     />
   </Box>
