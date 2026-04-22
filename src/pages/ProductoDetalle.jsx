@@ -53,7 +53,7 @@ export default function ProductoDetalle() {
   useEffect(() => {
     const fetchProducto = async () => {
       try {
-        const res = await fetch(`https://TU-BACKEND.onrender.com/api/productos/${id}/`) ;
+        const res = await fetch(`https://backvariantes.onrender.com/api/productos/${id}/`) ;
         const data = await res.json();
         setProducto(data);
         setVarianteSeleccionada(null); // 🔥 RESET
