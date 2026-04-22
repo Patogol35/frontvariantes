@@ -16,8 +16,7 @@ import { useCarrito } from "../context/CarritoContext";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import CloseIcon from "@mui/icons-material/Close";
 import Slider from "react-slick";
 
@@ -40,6 +39,7 @@ export default function ProductoDetalle() {
   const { state } = useLocation();
   const location = useLocation();
   const producto = state?.producto;
+
   const { agregarAlCarrito } = useCarrito();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -48,22 +48,19 @@ export default function ProductoDetalle() {
   const [zoomOpen, setZoomOpen] = useState(false);
   const [zoomImage, setZoomImage] = useState("");
   const [varianteSeleccionada, setVarianteSeleccionada] = useState(null);
-useEffect(() => {
-  const handleMenuOpen = () => {
-    setZoomOpen(false);
-  };
 
-  window.addEventListener("menuOpen", handleMenuOpen);
+  // 🔥 Cerrar zoom si se abre menú
+  useEffect(() => {
+    const handleMenuOpen = () => setZoomOpen(false);
+    window.addEventListener("menuOpen", handleMenuOpen);
+    return () => window.removeEventListener("menuOpen", handleMenuOpen);
+  }, []);
 
-  return () => {
-    window.removeEventListener("menuOpen", handleMenuOpen);
-  };
-}, []);
-  
   if (!producto) return <Typography>Producto no encontrado</Typography>;
 
   const tieneVariantes = producto.variantes?.length > 0;
 
+  // 🖼 IMÁGENES DINÁMICAS
   const imagenes = useMemo(() => {
     if (varianteSeleccionada?.imagenes?.length > 0) {
       return varianteSeleccionada.imagenes.map((img) => img.imagen);
@@ -77,19 +74,20 @@ useEffect(() => {
     return [...new Set(imgs)];
   }, [producto, varianteSeleccionada]);
 
+  // 🖼 IMAGEN ACTIVA
   const [imagenActiva, setImagenActiva] = useState("");
 
   useEffect(() => {
-    if (varianteSeleccionada?.imagenes?.length > 0) {
-      setImagenActiva(varianteSeleccionada.imagenes[0].imagen);
-    } else {
-      setImagenActiva(imagenes[0] || "");
+    if (imagenes.length > 0) {
+      setImagenActiva(imagenes[0]);
     }
-  }, [varianteSeleccionada, imagenes]);
+  }, [imagenes]);
 
+  // 💰 PRECIO
   const precioActual =
     varianteSeleccionada?.precio ?? producto.precio;
 
+  // 📦 STOCK TOTAL
   const stockTotal = useMemo(() => {
     if (!producto.variantes?.length) return producto.stock || 1;
     return producto.variantes.reduce(
@@ -98,12 +96,13 @@ useEffect(() => {
     );
   }, [producto]);
 
+  // 🛒 AGREGAR
   const handleAdd = async () => {
     if (!isAuthenticated) {
-  toast.info("Inicia sesión para agregar productos al carrito");
-  navigate("/login", { state: { from: location } });
-  return;
-}
+      toast.info("Inicia sesión para agregar productos al carrito");
+      navigate("/login", { state: { from: location } });
+      return;
+    }
 
     if (tieneVariantes && !varianteSeleccionada) {
       toast.warning("Selecciona una variante");
@@ -122,11 +121,13 @@ useEffect(() => {
     }
   };
 
+  // 🔍 ZOOM
   const handleZoom = (img) => {
     setZoomImage(img);
     setZoomOpen(true);
   };
 
+  // 🎞 CONFIG SLIDER
   const settings = {
     dots: true,
     infinite: true,
@@ -148,17 +149,17 @@ useEffect(() => {
         Regresar
       </Button>
 
-      {/* 🔥 GRID CENTRADO REAL */}
-      <Grid
-        container
-        spacing={5}
-        justifyContent="center"
-        alignItems="center"
-      >
-        {/* IMÁGENES */}
+      <Grid container spacing={5} justifyContent="center" alignItems="center">
+        
+        {/* 🖼 IMÁGENES */}
         <Grid item xs={12} md={6}>
           <Box sx={imagenContainerSx(theme)}>
-            <Slider {...settings}>
+            
+            {/* 🔥 FIX CLAVE AQUÍ */}
+            <Slider
+              {...settings}
+              key={varianteSeleccionada?.id || "default"}
+            >
               {imagenes.map((img, i) => (
                 <Box
                   key={i}
@@ -169,13 +170,14 @@ useEffect(() => {
                 </Box>
               ))}
             </Slider>
+
           </Box>
         </Grid>
 
-        {/* DETALLE */}
+        {/* 📄 DETALLE */}
         <Grid item xs={12} md={6}>
-          {/* 🔥 STACK CENTRADO */}
           <Stack spacing={3} alignItems="center">
+            
             <Typography variant="h4" sx={tituloSx}>
               {producto.nombre}
             </Typography>
@@ -184,6 +186,7 @@ useEffect(() => {
               ${precioActual}
             </Typography>
 
+            {/* 🔥 VARIANTES */}
             {tieneVariantes && (
               <>
                 <Typography fontWeight="bold">
@@ -229,6 +232,7 @@ useEffect(() => {
               {producto.descripcion}
             </Typography>
 
+            {/* 🛒 BOTÓN */}
             <Button
               variant="contained"
               startIcon={<AddShoppingCartIcon />}
@@ -255,57 +259,48 @@ useEffect(() => {
                 ? "Agregar al carrito"
                 : "Agotado"}
             </Button>
+
           </Stack>
         </Grid>
       </Grid>
 
-      {/* ZOOM */}
-      <Dialog
-  open={zoomOpen}
-  onClose={() => setZoomOpen(false)}
-  maxWidth="md"
->
-  <Box
-    sx={{
-      position: "relative",
-      bgcolor: theme.palette.background.default, // 🔥 dinámico claro/oscuro
-    }}
-  >
-    {/* BOTÓN X */}
-    <IconButton
-  onClick={() => setZoomOpen(false)}
-  sx={{
-    position: "absolute",
-    top: 10,
-    right: 10,
-    zIndex: 2,
+      {/* 🔍 ZOOM */}
+      <Dialog open={zoomOpen} onClose={() => setZoomOpen(false)} maxWidth="md">
+        <Box
+          sx={{
+            position: "relative",
+            bgcolor: theme.palette.background.default,
+          }}
+        >
+          <IconButton
+            onClick={() => setZoomOpen(false)}
+            sx={{
+              position: "absolute",
+              top: 10,
+              right: 10,
+              zIndex: 2,
+              bgcolor: "rgba(0,0,0,0.7)",
+              color: "#fff",
+              "&:hover": { bgcolor: "rgba(0,0,0,0.9)" },
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
 
-    bgcolor: "rgba(0,0,0,0.7)", // 🔥 siempre negro
-    color: "#fff",
-
-    "&:hover": {
-      bgcolor: "rgba(0,0,0,0.9)",
-    },
-  }}
->
-  <CloseIcon />
-</IconButton>
-
-    {/* IMAGEN ZOOM */}
-    <Box
-      component="img"
-      src={zoomImage}
-      onClick={() => setZoomOpen(false)} // 👈 opcional (click para cerrar)
-      sx={{
-        maxHeight: "80vh",
-        maxWidth: "100%",
-        display: "block",
-        margin: "0 auto",
-        cursor: "zoom-out",
-      }}
-    />
-  </Box>
-</Dialog>
+          <Box
+            component="img"
+            src={zoomImage}
+            onClick={() => setZoomOpen(false)}
+            sx={{
+              maxHeight: "80vh",
+              maxWidth: "100%",
+              display: "block",
+              margin: "0 auto",
+              cursor: "zoom-out",
+            }}
+          />
+        </Box>
+      </Dialog>
     </Box>
   );
-}
+                          }
