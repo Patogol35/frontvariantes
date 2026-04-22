@@ -57,7 +57,10 @@ export default function ProductoDetalle() {
           `https://backvariantes.onrender.com/api/productos/${id}/`
         );
 
-        if (!res.ok) throw new Error("Error en API");
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`HTTP ${res.status}: ${text}`);
+        }
 
         const data = await res.json();
 
@@ -66,42 +69,37 @@ export default function ProductoDetalle() {
         setProducto(data);
         setVarianteSeleccionada(null);
       } catch (error) {
-        console.error("❌ ERROR:", error);
-        setProducto(false);
+        console.error("❌ ERROR FETCH:", error);
+        setProducto(false); // 🔥 evita pantalla blanca
       }
     };
 
     fetchProducto();
   }, [id]);
 
-  // 🔒 cerrar zoom
+  // cerrar zoom global
   useEffect(() => {
     const handleMenuOpen = () => setZoomOpen(false);
     window.addEventListener("menuOpen", handleMenuOpen);
     return () => window.removeEventListener("menuOpen", handleMenuOpen);
   }, []);
 
-  // ✅ CONTROL DE ESTADOS (CLAVE)
+  // 🔴 CONTROL DE ESTADO (CLAVE)
   if (producto === null) return <Typography>Cargando...</Typography>;
   if (producto === false)
     return <Typography>Error cargando producto</Typography>;
-  if (!producto || typeof producto !== "object") return null;
+  if (typeof producto !== "object") return null;
 
   const tieneVariantes = producto?.variantes?.length > 0;
 
-  // 🔥 EXTRAER IMÁGENES (SOPORTA MUCHAS)
+  // 🔥 EXTRAER IMÁGENES
   const extraerImagenes = (obj) => {
     if (!obj) return [];
 
-    let imgs = [];
-
-    if (Array.isArray(obj.imagenes)) {
-      imgs.push(...obj.imagenes.map((i) => i.imagen));
-    }
-
-    if (obj.imagen) {
-      imgs.push(obj.imagen);
-    }
+    const imgs = [
+      ...(obj.imagenes?.map((i) => i.imagen) || []),
+      obj.imagen,
+    ];
 
     return imgs.filter(Boolean);
   };
@@ -123,10 +121,10 @@ export default function ProductoDetalle() {
     varianteSeleccionada?.precio ?? producto.precio;
 
   const stockTotal = useMemo(() => {
-    if (!producto.variantes?.length) return producto.stock || 1;
+    if (!producto?.variantes?.length) return producto?.stock || 1;
 
     return producto.variantes.reduce(
-      (acc, v) => acc + (v.stock || 0),
+      (acc, v) => acc + (v?.stock || 0),
       0
     );
   }, [producto]);
@@ -187,7 +185,7 @@ export default function ProductoDetalle() {
         <Grid item xs={12} md={6}>
           <Box sx={imagenContainerSx(theme)}>
             {imagenes.length > 0 ? (
-              <Slider key={imagenes.join("-")} {...settings}>
+              <Slider key={imagenes.length} {...settings}>
                 {imagenes.map((img, i) => (
                   <Box
                     key={i}
@@ -331,4 +329,4 @@ export default function ProductoDetalle() {
       </Dialog>
     </Box>
   );
-    }
+}
