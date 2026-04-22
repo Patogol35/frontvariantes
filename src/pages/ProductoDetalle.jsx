@@ -53,31 +53,35 @@ export default function ProductoDetalle() {
   const [zoomOpen, setZoomOpen] = useState(false);
   const [zoomImage, setZoomImage] = useState("");
   const [varianteSeleccionada, setVarianteSeleccionada] = useState(null);
-
   const [imagenes, setImagenes] = useState([]);
 
   if (!producto) return <Typography>Producto no encontrado</Typography>;
 
   const tieneVariantes = producto.variantes?.length > 0;
 
-  // 🔥 CONTROL REAL DE IMÁGENES
+  // 🔥 FIX DEFINITIVO DE IMÁGENES
   useEffect(() => {
     let imgs = [];
 
     if (varianteSeleccionada?.imagenes?.length > 0) {
-      imgs = varianteSeleccionada.imagenes.map((img) => img.imagen);
+      imgs = varianteSeleccionada.imagenes
+        .map((img) => img.imagen)
+        .filter((url) => typeof url === "string" && url.trim() !== "");
     } else {
       imgs = [
         producto.imagen,
         ...(producto.imagenes?.map((i) => i.imagen) || []),
-      ];
+      ].filter((url) => typeof url === "string" && url.trim() !== "");
     }
 
-    imgs = [...new Set(imgs.filter(Boolean))];
+    // 🔥 eliminar duplicados
+    imgs = [...new Set(imgs)];
+
+    console.log("IMAGENES FINALES:", imgs); // DEBUG
 
     setImagenes(imgs);
 
-    // reset slider
+    // 🔥 reset slider
     setTimeout(() => {
       sliderRef.current?.slickGoTo(0);
     }, 0);
@@ -132,6 +136,7 @@ export default function ProductoDetalle() {
 
   return (
     <Box sx={containerSx}>
+      {/* VOLVER */}
       <Button
         startIcon={<ArrowBackIcon />}
         variant="outlined"
@@ -146,7 +151,7 @@ export default function ProductoDetalle() {
         {/* IMÁGENES */}
         <Grid item xs={12} md={6}>
           <Box sx={imagenContainerSx(theme)}>
-            {imagenes.length > 0 && (
+            {imagenes.length > 0 ? (
               <Slider ref={sliderRef} {...settings}>
                 {imagenes.map((img, i) => (
                   <Box
@@ -158,6 +163,8 @@ export default function ProductoDetalle() {
                   </Box>
                 ))}
               </Slider>
+            ) : (
+              <Typography>No hay imágenes disponibles</Typography>
             )}
           </Box>
         </Grid>
