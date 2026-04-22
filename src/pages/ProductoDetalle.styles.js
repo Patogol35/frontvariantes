@@ -1,319 +1,254 @@
-import { useState, useMemo, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import {
-  Box,
-  Typography,
-  Button,
-  Grid,
-  Stack,
-  Chip,
-  Divider,
-  Dialog,
-  IconButton,
-  useTheme,
-} from "@mui/material";
-import { useCarrito } from "../context/CarritoContext";
-import { useAuth } from "../context/AuthContext";
-import { toast } from "react-toastify";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
-import CloseIcon from "@mui/icons-material/Close";
+// ================================
+// CONTENEDOR PRINCIPAL
+// ================================
+export const containerSx = {
+  maxWidth: 1100,
+  mx: "auto",
+  p: { xs: 2, md: 5 },
 
-import {
-  containerSx,
-  botonVolverSx,
-  imagenContainerSx,
-  imagenSx,
-  tituloSx,
-  precioSx,
-  varianteBtnSx,
-  descripcionSx,
-  botonAgregarSx,
-  stockSx,
-  variantesContainerSx,
-} from "./ProductoDetalle.styles";
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  textAlign: "center",
+  gap: 4,
+};
 
-export default function ProductoDetalle() {
-  const { state } = useLocation();
-  const location = useLocation();
-  const producto = state?.producto;
 
-  const { agregarAlCarrito } = useCarrito();
-  const { isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-  const theme = useTheme();
+// ================================
+// BOTÓN VOLVER
+// ================================
+export const botonVolverSx = (theme) => ({
+  alignSelf: "center",
 
-  const [zoomOpen, setZoomOpen] = useState(false);
-  const [zoomImage, setZoomImage] = useState("");
-  const [varianteSeleccionada, setVarianteSeleccionada] = useState(null);
-  const [imagenActiva, setImagenActiva] = useState("");
+  borderRadius: "999px",
+  textTransform: "none",
+  fontWeight: 500,
 
-  if (!producto) return <Typography>Producto no encontrado</Typography>;
+  px: 2,
+  py: 0.6,
 
-  const tieneVariantes = producto.variantes?.length > 0;
+  border: "1px solid",
+  borderColor: theme.palette.divider,
+  color: theme.palette.text.primary,
 
-  // 🔥 NORMALIZAR IMÁGENES
-  const getImagen = (img) => {
-    if (!img) return null;
-    if (typeof img === "string") return img;
-    if (typeof img === "object" && img.imagen) return img.imagen;
-    return null;
+  backdropFilter: "blur(6px)",
+
+  transition: "all 0.25s ease",
+
+  "&:hover": {
+    backgroundColor: theme.palette.action.hover,
+    transform: "scale(1.05)",
+  },
+});
+
+
+// ================================
+// IMAGEN CONTENEDOR
+// ================================
+export const imagenContainerSx = (theme) => ({
+  bgcolor: theme.palette.background.paper,
+  borderRadius: 5,
+  p: 2,
+
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  maxHeight: 320,
+  maxWidth: 240,
+  border: "1px solid",
+  borderColor:
+    theme.palette.mode === "dark"
+      ? "#fff"
+      : "#000",
+
+  boxShadow:
+    theme.palette.mode === "dark"
+      ? "0 20px 50px rgba(0,0,0,0.7)"
+      : "0 20px 50px rgba(0,0,0,0.08)",
+
+  overflow: "hidden",
+
+  transition: "all 0.3s ease",
+
+  "&:hover": {
+    transform: "scale(1.01)",
+  },
+
+  "&:hover img": {
+    transform: "scale(1.08)",
+   },
+});
+
+
+// ================================
+// IMAGEN SLIDE
+// ================================
+export const imagenSlideSx = {
+//  display: "flex",
+ // justifyContent: "center",
+//  alignItems: "center",
+//  height: { xs: 300, md: 500 },
+//  cursor: "pointer",
+};
+
+
+// ================================
+// IMAGEN
+// ================================
+export const imagenSx = {
+  maxWidth: "80%",
+  maxHeight: 440,
+  objectFit: "contain",
+  borderRadius: 3,
+  transition: "transform 0.5s ease",
+};
+
+
+// ================================
+// TÍTULO
+// ================================
+export const tituloSx = {
+  fontWeight: 700,
+  fontSize: { xs: "1.5rem", md: "2rem" },
+};
+
+
+// ================================
+// PRECIO
+// ================================
+export const precioSx = (theme) => ({
+  fontWeight: 800,
+  fontSize: "2rem",
+
+  color:
+    theme.palette.mode === "dark"
+      ? "#66b2ff"
+      : "#0d47a1",
+});
+
+
+// ================================
+// STOCK
+// ================================
+export const stockSx = (stock) => ({
+  alignSelf: "center",
+
+  px: 1.8,
+  py: 0.5,
+
+  borderRadius: "999px",
+  fontSize: "0.75rem",
+  fontWeight: 600,
+
+  backdropFilter: "blur(6px)",
+
+  background:
+    stock > 0
+      ? "linear-gradient(135deg, #e8f5e9, #c8e6c9)"
+      : "linear-gradient(135deg, #ffebee, #ffcdd2)",
+
+  color: stock > 0 ? "#1b5e20" : "#b71c1c",
+
+  border: "1px solid",
+  borderColor: stock > 0 ? "#a5d6a7" : "#ef9a9a",
+});
+
+
+// ================================
+// VARIANTES
+// ================================
+export const variantesContainerSx = {
+  display: "flex",
+  justifyContent: "center",
+  flexWrap: "wrap",
+  gap: 1,
+};
+
+export const varianteBtnSx = (isSelected, stock, theme) => {
+  const isDark = theme.palette.mode === "dark";
+
+  return {
+    borderRadius: "999px",
+    textTransform: "none",
+    fontWeight: 500,
+
+    px: 2,
+    py: 0.7,
+
+    // 🔥 BORDE SIEMPRE PRESENTE
+    border: "1px solid",
+    borderColor: isDark ? "#fff" : "#000",
+
+    // 🔥 FONDO
+    backgroundColor: isSelected
+  ? "#000"
+  : "#e3f2fd",
+
+    // 🔥 TEXTO
+    color: isSelected
+  ? "#fff"
+  : isDark
+  ? "#000"
+  : theme.palette.text.primary,
+
+    opacity: stock === 0 ? 0.4 : 1,
+
+    transition: "all 0.25s ease",
+
+    "&:hover": {
+      transform: stock > 0 ? "scale(1.05)" : "none",
+
+      // 🔥 HOVER MÁS INTENSO
+      backgroundColor: isSelected
+        ? "#000"
+        : isDark
+        ? "rgba(144,202,249,0.4)"
+        : "#bbdefb",
+    },
   };
+};
 
-  const imagenes = useMemo(() => {
-    if (varianteSeleccionada?.imagenes?.length > 0) {
-      return varianteSeleccionada.imagenes
-        .map(getImagen)
-        .filter(Boolean);
-    }
+// ================================
+// DESCRIPCIÓN
+// ================================
+export const descripcionSx = {
+  color: "text.secondary",
+  lineHeight: 1.7,
+  fontSize: "0.95rem",
+};
 
-    return [
-      producto.imagen,
-      ...(producto.imagenes || []),
-    ]
-      .map(getImagen)
-      .filter(Boolean);
-  }, [producto, varianteSeleccionada]);
 
-  useEffect(() => {
-    if (imagenes.length > 0) {
-      setImagenActiva(imagenes[0]);
-    }
-  }, [imagenes]);
+// ================================
+// BOTÓN AGREGAR
+// ================================
+export const botonAgregarSx = (stock) => ({
+  alignSelf: "center",
 
-  const precioActual =
-    varianteSeleccionada?.precio ?? producto.precio;
+  borderRadius: "999px",
+  px: 3,
+  py: 1.2,
 
-  const stockTotal = producto.variantes?.length
-    ? producto.variantes.reduce((acc, v) => acc + (v.stock || 0), 0)
-    : producto.stock || 1;
+  display: "flex",
+  alignItems: "center",
+  gap: 1,
 
-  const handleAdd = async () => {
-    if (!isAuthenticated) {
-      toast.info("Inicia sesión para continuar");
-      navigate("/login", { state: { from: location } });
-      return;
-    }
+  fontWeight: 700,
 
-    if (tieneVariantes && !varianteSeleccionada) {
-      toast.warning("Selecciona una variante");
-      return;
-    }
+  background:
+    stock > 0
+      ? "linear-gradient(135deg, #1976d2, #42a5f5)"
+      : "#9e9e9e",
 
-    try {
-      await agregarAlCarrito(
-        producto.id,
-        varianteSeleccionada?.id || null,
-        1
-      );
+  color: "#fff",
 
-      // 🔥 TOAST COMO LO TENÍAS
-      toast.success(`${producto.nombre} agregado al carrito 🛒`);
-    } catch (e) {
-      toast.error(e.message);
-    }
-  };
+  boxShadow:
+    stock > 0
+      ? "0 10px 25px rgba(25,118,210,0.4)"
+      : "none",
 
-  return (
-    <Box sx={containerSx}>
-      {/* VOLVER */}
-      <Button
-        startIcon={<ArrowBackIcon />}
-        variant="outlined"
-        sx={botonVolverSx(theme)}
-        onClick={() => navigate(-1)}
-      >
-        Regresar
-      </Button>
+  transition: "all 0.25s ease",
 
-      <Grid container spacing={5} justifyContent="center">
-
-        {/* 🔥 IMÁGENES */}
-        <Grid item xs={12} md={6}>
-          <Box
-            sx={{
-              display: "flex",
-              gap: 2,
-              flexDirection: { xs: "column", md: "row" },
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-
-            {/* MINIATURAS */}
-            {imagenes.length > 1 && (
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: { xs: "row", md: "column" },
-                  gap: 1,
-                  overflowX: "auto",
-                }}
-              >
-                {imagenes.map((img, i) => (
-                  <Box
-                    key={i}
-                    component="img"
-                    src={img}
-                    onClick={() => setImagenActiva(img)}
-                    sx={{
-                      width: 65,
-                      height: 65,
-                      objectFit: "cover",
-                      borderRadius: 2,
-                      cursor: "pointer",
-                      border:
-                        imagenActiva === img
-                          ? "2px solid #1976d2"
-                          : "1px solid #ccc",
-                      opacity: imagenActiva === img ? 1 : 0.6,
-                      transition: "0.3s",
-                    }}
-                  />
-                ))}
-              </Box>
-            )}
-
-            {/* 🔥 IMAGEN PRINCIPAL (TU ESTILO) */}
-            <Box
-              sx={{
-                ...imagenContainerSx(theme),
-                cursor: "zoom-in",
-              }}
-              onClick={() => {
-                setZoomImage(imagenActiva);
-                setZoomOpen(true);
-              }}
-            >
-              <Box
-                component="img"
-                src={imagenActiva}
-                sx={imagenSx}
-              />
-            </Box>
-
-          </Box>
-        </Grid>
-
-        {/* DETALLE */}
-        <Grid item xs={12} md={6}>
-          <Stack spacing={3} alignItems="center">
-
-            <Typography variant="h4" sx={tituloSx}>
-              {producto.nombre}
-            </Typography>
-
-            <Typography variant="h5" sx={precioSx(theme)}>
-              ${precioActual}
-            </Typography>
-
-            {tieneVariantes && (
-              <>
-                <Typography fontWeight="bold">
-                  Selecciona una opción:
-                </Typography>
-
-                <Stack direction="row" sx={variantesContainerSx}>
-                  {producto.variantes.map((v) => {
-                    const isSelected =
-                      varianteSeleccionada?.id === v.id;
-
-                    const label = [
-                      v.talla,
-                      v.color,
-                      v.modelo,
-                      v.capacidad,
-                    ]
-                      .filter(Boolean)
-                      .join(" - ");
-
-                    return (
-                      <Button
-                        key={v.id}
-                        onClick={() => setVarianteSeleccionada(v)}
-                        disabled={v.stock === 0}
-                        sx={varianteBtnSx(isSelected, v.stock, theme)}
-                      >
-                        {label || "Única"}
-                      </Button>
-                    );
-                  })}
-                </Stack>
-
-                {varianteSeleccionada && (
-                  <Chip
-                    label={`Stock: ${varianteSeleccionada.stock}`}
-                    sx={stockSx(varianteSeleccionada.stock)}
-                  />
-                )}
-              </>
-            )}
-
-            <Divider sx={{ width: "100%" }} />
-
-            <Typography sx={descripcionSx}>
-              {producto.descripcion}
-            </Typography>
-
-            <Button
-              variant="contained"
-              startIcon={<AddShoppingCartIcon />}
-              onClick={handleAdd}
-              disabled={
-                tieneVariantes
-                  ? !varianteSeleccionada ||
-                    varianteSeleccionada.stock === 0
-                  : stockTotal === 0
-              }
-              sx={botonAgregarSx(
-                tieneVariantes
-                  ? varianteSeleccionada?.stock
-                  : stockTotal
-              )}
-            >
-              {tieneVariantes
-                ? varianteSeleccionada
-                  ? varianteSeleccionada.stock > 0
-                    ? "Agregar al carrito"
-                    : "Agotado"
-                  : "Seleccionar opción"
-                : stockTotal > 0
-                ? "Agregar al carrito"
-                : "Agotado"}
-            </Button>
-
-          </Stack>
-        </Grid>
-      </Grid>
-
-      {/* 🔍 ZOOM */}
-      <Dialog open={zoomOpen} onClose={() => setZoomOpen(false)}>
-        <Box sx={{ position: "relative" }}>
-          <IconButton
-            onClick={() => setZoomOpen(false)}
-            sx={{
-              position: "absolute",
-              top: 10,
-              right: 10,
-              bgcolor: "black",
-              color: "#fff",
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
-
-          <Box
-            component="img"
-            src={zoomImage}
-            sx={{
-              maxHeight: "80vh",
-              maxWidth: "100%",
-              display: "block",
-              margin: "auto",
-            }}
-          />
-        </Box>
-      </Dialog>
-    </Box>
-  );
-          }
+  "&:hover": {
+    transform: stock > 0 ? "scale(1.05)" : "none",
+  },
+});
