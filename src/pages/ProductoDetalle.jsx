@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
@@ -12,12 +12,15 @@ import {
   IconButton,
   useTheme,
 } from "@mui/material";
+
 import { useCarrito } from "../context/CarritoContext";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
+
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import CloseIcon from "@mui/icons-material/Close";
+
 import Slider from "react-slick";
 
 import {
@@ -39,15 +42,20 @@ export default function ProductoDetalle() {
   const { state } = useLocation();
   const location = useLocation();
   const producto = state?.producto;
+
   const { agregarAlCarrito } = useCarrito();
   const { isAuthenticated } = useAuth();
+
   const navigate = useNavigate();
   const theme = useTheme();
+
+  const sliderRef = useRef(null);
 
   const [zoomOpen, setZoomOpen] = useState(false);
   const [zoomImage, setZoomImage] = useState("");
   const [varianteSeleccionada, setVarianteSeleccionada] = useState(null);
 
+  // cerrar zoom si se abre menú
   useEffect(() => {
     const handleMenuOpen = () => setZoomOpen(false);
     window.addEventListener("menuOpen", handleMenuOpen);
@@ -58,42 +66,43 @@ export default function ProductoDetalle() {
 
   const tieneVariantes = producto.variantes?.length > 0;
 
-  // 🔥 NORMALIZADOR DE IMÁGENES (CLAVE)
+  // 🔥 IMÁGENES CORRECTAS (VARIANTE O PRODUCTO)
   const imagenes = useMemo(() => {
-    const getImagen = (img) => {
-      if (!img) return null;
-      if (typeof img === "string") return img;
-      return img.imagen || img.url || img.src || null;
-    };
+    let imgs = [];
 
-    // ✅ VARIANTE
     if (varianteSeleccionada?.imagenes?.length > 0) {
-      const imgs = varianteSeleccionada.imagenes
-        .map(getImagen)
-        .filter(Boolean);
-
-      if (imgs.length > 0) return imgs;
+      imgs = varianteSeleccionada.imagenes.map((img) => img.imagen);
+    } else {
+      imgs = [
+        producto.imagen,
+        ...(producto.imagenes?.map((i) => i.imagen) || []),
+      ];
     }
 
-    // 🔥 fallback si backend usa "imagen" directa
-    if (varianteSeleccionada?.imagen) {
-      return [varianteSeleccionada.imagen];
-    }
-
-    // ✅ PRODUCTO
-    const productoImgs = [
-      producto.imagen,
-      ...(producto.imagenes || []).map(getImagen),
-    ].filter(Boolean);
-
-    return [...new Set(productoImgs)];
+    return [...new Set(imgs.filter(Boolean))];
   }, [producto, varianteSeleccionada]);
+
+  const [imagenActiva, setImagenActiva] = useState("");
+
+  // 🔥 cambiar imagen activa
+  useEffect(() => {
+    if (imagenes.length > 0) {
+      setImagenActiva(imagenes[0]);
+    }
+  }, [imagenes]);
+
+  // 🔥 reset slider cuando cambian imágenes
+  useEffect(() => {
+    if (sliderRef.current) {
+      sliderRef.current.slickGoTo(0);
+    }
+  }, [imagenes]);
 
   const precioActual =
     varianteSeleccionada?.precio ?? producto.precio;
 
   const stockTotal = useMemo(() => {
-    if (!producto.variantes?.length) return producto.stock || 1;
+    if (!producto.variantes?.length) return producto.stock || 0;
     return producto.variantes.reduce(
       (acc, v) => acc + (v.stock || 0),
       0
@@ -102,7 +111,7 @@ export default function ProductoDetalle() {
 
   const handleAdd = async () => {
     if (!isAuthenticated) {
-      toast.info("Inicia sesión para agregar productos al carrito");
+      toast.info("Inicia sesión para agregar productos");
       navigate("/login", { state: { from: location } });
       return;
     }
@@ -132,7 +141,7 @@ export default function ProductoDetalle() {
   const settings = {
     dots: true,
     infinite: true,
-    speed: 500,
+    speed: 400,
     slidesToShow: 1,
     slidesToScroll: 1,
     adaptiveHeight: true,
@@ -140,7 +149,7 @@ export default function ProductoDetalle() {
 
   return (
     <Box sx={containerSx}>
-      {/* VOLVER */}
+      {/* BOTÓN VOLVER */}
       <Button
         startIcon={<ArrowBackIcon />}
         variant="outlined"
@@ -150,14 +159,16 @@ export default function ProductoDetalle() {
         Regresar
       </Button>
 
+      {/* GRID */}
       <Grid container spacing={5} justifyContent="center" alignItems="center">
         
-        {/* 🔥 IMÁGENES */}
+        {/* IMÁGENES */}
         <Grid item xs={12} md={6}>
           <Box sx={imagenContainerSx(theme)}>
             <Slider
+              ref={sliderRef}
+              key={imagenes.join("-")} // 🔥 fuerza re-render
               {...settings}
-              key={varianteSeleccionada?.id || "producto"} // 🔥 reinicia slider
             >
               {imagenes.map((img, i) => (
                 <Box
@@ -175,6 +186,7 @@ export default function ProductoDetalle() {
         {/* DETALLE */}
         <Grid item xs={12} md={6}>
           <Stack spacing={3} alignItems="center">
+            
             <Typography variant="h4" sx={tituloSx}>
               {producto.nombre}
             </Typography>
@@ -183,6 +195,7 @@ export default function ProductoDetalle() {
               ${precioActual}
             </Typography>
 
+            {/* VARIANTES */}
             {tieneVariantes && (
               <>
                 <Typography fontWeight="bold">
@@ -228,6 +241,7 @@ export default function ProductoDetalle() {
               {producto.descripcion}
             </Typography>
 
+            {/* BOTÓN */}
             <Button
               variant="contained"
               startIcon={<AddShoppingCartIcon />}
@@ -258,7 +272,7 @@ export default function ProductoDetalle() {
         </Grid>
       </Grid>
 
-      {/* 🔍 ZOOM */}
+      {/* ZOOM */}
       <Dialog open={zoomOpen} onClose={() => setZoomOpen(false)} maxWidth="md">
         <Box
           sx={{
@@ -299,4 +313,4 @@ export default function ProductoDetalle() {
       </Dialog>
     </Box>
   );
-}
+                           }
