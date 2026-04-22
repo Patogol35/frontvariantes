@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
@@ -12,15 +12,12 @@ import {
   IconButton,
   useTheme,
 } from "@mui/material";
-
 import { useCarrito } from "../context/CarritoContext";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
-
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import CloseIcon from "@mui/icons-material/Close";
-
 import Slider from "react-slick";
 
 import {
@@ -40,87 +37,75 @@ import {
 
 export default function ProductoDetalle() {
   const { state } = useLocation();
-  const productoInicial = state?.producto;
-
-  const navigate = useNavigate();
-  const theme = useTheme();
-  const sliderRef = useRef(null);
-
+  const location = useLocation();
+  const producto = state?.producto;
   const { agregarAlCarrito } = useCarrito();
   const { isAuthenticated } = useAuth();
-
-  const [producto, setProducto] = useState(null);
-  const [varianteSeleccionada, setVarianteSeleccionada] = useState(null);
-  const [imagenes, setImagenes] = useState([]);
+  const navigate = useNavigate();
+  const theme = useTheme();
 
   const [zoomOpen, setZoomOpen] = useState(false);
   const [zoomImage, setZoomImage] = useState("");
+  const [varianteSeleccionada, setVarianteSeleccionada] = useState(null);
+  const [imagenActiva, setImagenActiva] = useState("");
 
-  // 🔥 TRAER PRODUCTO REAL DESDE API
   useEffect(() => {
-    const fetchProducto = async () => {
-      try {
-        const res = await fetch(
-          `http://127.0.0.1:8000/api/productos/${productoInicial.id}/`
-        );
-        const data = await res.json();
-        setProducto(data);
-      } catch (error) {
-        console.error("Error cargando producto", error);
-      }
-    };
+    const handleMenuOpen = () => setZoomOpen(false);
+    window.addEventListener("menuOpen", handleMenuOpen);
+    return () => window.removeEventListener("menuOpen", handleMenuOpen);
+  }, []);
 
-    if (productoInicial?.id) {
-      fetchProducto();
-    }
-  }, [productoInicial]);
-
-  // 🔥 MANEJO DE IMÁGENES
-  useEffect(() => {
-    if (!producto) return;
-
-    let imgs = [];
-
-    if (varianteSeleccionada?.imagenes?.length > 0) {
-      imgs = varianteSeleccionada.imagenes.map((img) => img.imagen);
-    } else {
-      imgs = [
-        producto.imagen,
-        ...(producto.imagenes?.map((i) => i.imagen) || []),
-      ];
-    }
-
-    imgs = [...new Set(imgs.filter(Boolean))];
-
-    setImagenes(imgs);
-
-    setTimeout(() => {
-      sliderRef.current?.slickGoTo(0);
-    }, 0);
-
-  }, [varianteSeleccionada, producto]);
-
-  if (!producto) return <Typography>Cargando...</Typography>;
+  if (!producto) return <Typography>Producto no encontrado</Typography>;
 
   const tieneVariantes = producto.variantes?.length > 0;
+
+  // 🔥 IMÁGENES DINÁMICAS (FIX PRINCIPAL)
+  const imagenes = useMemo(() => {
+    if (varianteSeleccionada) {
+      const imgs = [
+        ...(varianteSeleccionada.imagenes?.map((i) => i.imagen) || []),
+        varianteSeleccionada.imagen, // fallback por si hay imagen principal
+      ].filter(Boolean);
+
+      if (imgs.length > 0) {
+        return [...new Set(imgs)];
+      }
+    }
+
+    // fallback producto
+    const imgs = [
+      producto.imagen,
+      ...(producto.imagenes?.map((i) => i.imagen) || []),
+    ].filter(Boolean);
+
+    return [...new Set(imgs)];
+  }, [producto, varianteSeleccionada]);
+
+  // 🔥 imagen activa
+  useEffect(() => {
+    setImagenActiva(imagenes[0] || "");
+  }, [imagenes]);
 
   const precioActual =
     varianteSeleccionada?.precio ?? producto.precio;
 
-  const stockTotal = producto.variantes?.reduce(
-    (acc, v) => acc + (v.stock || 0),
-    0
-  ) || 0;
+  const stockTotal = useMemo(() => {
+    if (!producto.variantes?.length) return producto.stock || 1;
+    return producto.variantes.reduce(
+      (acc, v) => acc + (v.stock || 0),
+      0
+    );
+  }, [producto]);
 
   const handleAdd = async () => {
     if (!isAuthenticated) {
-      toast.info("Inicia sesión");
-      navigate("/login");
+      toast.info("Inicia sesión para agregar productos al carrito");
+      navigate("/login", { state: { from: location } });
       return;
     }
 
     if (tieneVariantes && !varianteSeleccionada) {
-      toast.warning("Selecciona variante");
+      toast.warning("Selecciona una variante");
       return;
     }
 
@@ -130,7 +115,7 @@ export default function ProductoDetalle() {
         varianteSeleccionada?.id || null,
         1
       );
-      toast.success("Agregado ✅");
+      toast.success(`"${producto.nombre}" agregado ✅`);
     } catch (e) {
       toast.error(e.message);
     }
@@ -143,14 +128,16 @@ export default function ProductoDetalle() {
 
   const settings = {
     dots: true,
-    infinite: imagenes.length > 1,
-    speed: 400,
+    infinite: true,
+    speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
+    adaptiveHeight: true,
   };
 
   return (
     <Box sx={containerSx}>
+      {/* VOLVER */}
       <Button
         startIcon={<ArrowBackIcon />}
         variant="outlined"
@@ -160,67 +147,143 @@ export default function ProductoDetalle() {
         Regresar
       </Button>
 
-      <Grid container spacing={5} justifyContent="center">
+      <Grid container spacing={5} justifyContent="center" alignItems="center">
         {/* IMÁGENES */}
         <Grid item xs={12} md={6}>
           <Box sx={imagenContainerSx(theme)}>
-            {imagenes.length > 0 && (
-              <Slider ref={sliderRef} {...settings}>
-                {imagenes.map((img, i) => (
-                  <Box key={i} onClick={() => handleZoom(img)}>
-                    <Box component="img" src={img} sx={imagenSx} />
-                  </Box>
-                ))}
-              </Slider>
-            )}
+            {/* 🔥 key para reiniciar slider al cambiar variante */}
+            <Slider key={varianteSeleccionada?.id || "producto"} {...settings}>
+              {imagenes.map((img, i) => (
+                <Box key={i} onClick={() => handleZoom(img)} sx={imagenSlideSx}>
+                  <Box component="img" src={img} sx={imagenSx} />
+                </Box>
+              ))}
+            </Slider>
           </Box>
         </Grid>
 
         {/* DETALLE */}
         <Grid item xs={12} md={6}>
           <Stack spacing={3} alignItems="center">
-            <Typography variant="h4">{producto.nombre}</Typography>
+            <Typography variant="h4" sx={tituloSx}>
+              {producto.nombre}
+            </Typography>
 
-            <Typography variant="h5">
+            <Typography variant="h5" sx={precioSx(theme)}>
               ${precioActual}
             </Typography>
 
             {tieneVariantes && (
               <>
-                <Stack direction="row">
-                  {producto.variantes.map((v) => (
-                    <Button
-                      key={v.id}
-                      onClick={() => setVarianteSeleccionada(v)}
-                    >
-                      {v.talla} {v.color}
-                    </Button>
-                  ))}
+                <Typography fontWeight="bold">
+                  Selecciona una opción:
+                </Typography>
+
+                <Stack direction="row" sx={variantesContainerSx}>
+                  {producto.variantes.map((v) => {
+                    const isSelected = varianteSeleccionada?.id === v.id;
+
+                    const label = [
+                      ...new Set(
+                        [v.talla, v.color, v.modelo, v.capacidad]
+                          .filter(Boolean)
+                          .map((x) => x.trim())
+                      ),
+                    ].join(" - ");
+
+                    return (
+                      <Button
+                        key={v.id}
+                        onClick={() => setVarianteSeleccionada(v)}
+                        disabled={v.stock === 0}
+                        sx={varianteBtnSx(isSelected, v.stock, theme)}
+                      >
+                        {label || "Única"}
+                      </Button>
+                    );
+                  })}
                 </Stack>
+
+                {varianteSeleccionada && (
+                  <Chip
+                    label={`Stock: ${varianteSeleccionada.stock}`}
+                    sx={stockSx(varianteSeleccionada.stock)}
+                  />
+                )}
               </>
             )}
 
-            <Typography>{producto.descripcion}</Typography>
+            <Divider sx={{ width: "100%" }} />
+
+            <Typography sx={descripcionSx}>
+              {producto.descripcion}
+            </Typography>
 
             <Button
               variant="contained"
               startIcon={<AddShoppingCartIcon />}
               onClick={handleAdd}
+              disabled={
+                tieneVariantes
+                  ? !varianteSeleccionada ||
+                    varianteSeleccionada.stock === 0
+                  : stockTotal === 0
+              }
+              sx={botonAgregarSx(
+                tieneVariantes
+                  ? varianteSeleccionada?.stock
+                  : stockTotal
+              )}
             >
-              Agregar al carrito
+              {tieneVariantes
+                ? varianteSeleccionada
+                  ? varianteSeleccionada.stock > 0
+                    ? "Agregar al carrito"
+                    : "Agotado"
+                  : "Seleccionar opción"
+                : stockTotal > 0
+                ? "Agregar al carrito"
+                : "Agotado"}
             </Button>
           </Stack>
         </Grid>
       </Grid>
 
       {/* ZOOM */}
-      <Dialog open={zoomOpen} onClose={() => setZoomOpen(false)}>
-        <Box>
-          <IconButton onClick={() => setZoomOpen(false)}>
+      <Dialog open={zoomOpen} onClose={() => setZoomOpen(false)} maxWidth="md">
+        <Box
+          sx={{
+            position: "relative",
+            bgcolor: theme.palette.background.default,
+          }}
+        >
+          <IconButton
+            onClick={() => setZoomOpen(false)}
+            sx={{
+              position: "absolute",
+              top: 10,
+              right: 10,
+              zIndex: 2,
+              bgcolor: "rgba(0,0,0,0.7)",
+              color: "#fff",
+              "&:hover": { bgcolor: "rgba(0,0,0,0.9)" },
+            }}
+          >
             <CloseIcon />
           </IconButton>
 
-          <Box component="img" src={zoomImage} />
+          <Box
+            component="img"
+            src={zoomImage}
+            onClick={() => setZoomOpen(false)}
+            sx={{
+              maxHeight: "80vh",
+              maxWidth: "100%",
+              display: "block",
+              margin: "0 auto",
+              cursor: "zoom-out",
+            }}
+          />
         </Box>
       </Dialog>
     </Box>
