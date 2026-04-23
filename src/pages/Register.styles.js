@@ -70,6 +70,23 @@ const registerStyles = {
     },
     transition: "all 0.3s",
   }),
+
+  botonRegister: (theme) => ({
+  py: 1.5,
+  fontWeight: "bold",
+  borderColor: theme.palette.mode === "dark" ? "#42a5f5" : "#1976d2",
+  color: theme.palette.mode === "dark" ? "#42a5f5" : "#1976d2",
+  "&:hover": {
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(66,165,245,0.08)"
+        : "rgba(25,118,210,0.08)",
+    transform: "scale(1.03)",
+    borderColor: theme.palette.mode === "dark" ? "#42a5f5" : "#1976d2",
+  },
+  transition: "all 0.3s",
+}),
+  
 };
 
 export default registerStyles;
