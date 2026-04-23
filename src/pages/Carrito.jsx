@@ -107,8 +107,7 @@ export default function Carrito() {
       {loading && <Typography>Cargando carrito...</Typography>}
 
       {/* VACÍO */}
-      {!loading && items.length === 0 && (
-        {!loading && items.length === 0 && (
+{!loading && items.length === 0 && (
   <Box sx={styles.emptyState}>
     <Typography
       variant="h6"
