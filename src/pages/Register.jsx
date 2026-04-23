@@ -70,6 +70,20 @@ const validators = {
   },
 };
 
+// ---------- ERROR HANDLER ----------
+const traducirError = (resp) => {
+  if (resp?.username?.[0] === "A user with that username already exists.")
+    return "El nombre de usuario ya está registrado";
+
+  return (
+    resp?.username?.[0] ||
+    resp?.email?.[0] ||
+    resp?.password?.[0] ||
+    (Array.isArray(resp) && resp[0]) ||
+    "Ocurrió un error en el registro"
+  );
+};
+
 export default function Register() {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -86,12 +100,14 @@ export default function Register() {
   const [showPasswords, setShowPasswords] = useState(false);
   const [authenticating, setAuthenticating] = useState(false);
 
+  const isBlocked = loading || authenticating;
+
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   }, []);
 
-  const validateForm = () => {
+  const validateForm = useCallback(() => {
     for (const key in validators) {
       const error = validators[key](form[key], form);
       if (error) {
@@ -100,7 +116,7 @@ export default function Register() {
       }
     }
     return true;
-  };
+  }, [form]);
 
   const strength = useMemo(
     () => getPasswordStrength(form.password),
@@ -110,8 +126,7 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (loading || authenticating) return;
-    if (!validateForm()) return;
+    if (isBlocked || !validateForm()) return;
 
     setLoading(true);
 
@@ -125,36 +140,15 @@ export default function Register() {
       toast.success("Usuario registrado correctamente");
       navigate("/login");
     } catch (error) {
-      const resp = error?.response?.data;
-
-      const traducirUsuario = (msg) => {
-        if (msg === "A user with that username already exists.") {
-          return "El nombre de usuario ya está registrado";
-        }
-        return msg;
-      };
-
-      if (resp?.username?.[0])
-        toast.error(traducirUsuario(resp.username[0]));
-      else if (resp?.email?.[0])
-        toast.error(resp.email[0]);
-      else if (resp?.password?.[0])
-        toast.error(resp.password[0]);
-      else if (Array.isArray(resp))
-        toast.error(resp[0]);
-      else toast.error("Ocurrió un error en el registro");
+      toast.error(traducirError(error?.response?.data));
     } finally {
       setLoading(false);
     }
   };
 
-  // =====================
-  // GOOGLE
-  // =====================
-  const handleGoogleSuccess = async (credentialResponse) => {
-    if (!credentialResponse?.credential) {
-      return toast.error("Error con Google");
-    }
+  // ---------- GOOGLE ----------
+  const handleGoogleSuccess = async ({ credential }) => {
+    if (!credential) return toast.error("Error con Google");
 
     setAuthenticating(true);
 
@@ -163,52 +157,47 @@ export default function Register() {
         "https://backvariantes.onrender.com/api/google-login/",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            token: credentialResponse.credential,
-          }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: credential }),
         }
       );
 
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Error con Google");
-      }
+      if (!res.ok) throw new Error(data.error);
 
       login(data.access, data.refresh);
       toast.success("Autenticado con Google 👌");
       navigate("/");
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error("Error al iniciar con Google");
     } finally {
       setAuthenticating(false);
     }
   };
 
-  const renderInput = (label, name, icon, type = "text", auto = "") => (
-    <TextField
-      label={label}
-      name={name}
-      type={type}
-      fullWidth
-      margin="normal"
-      value={form[name]}
-      onChange={handleChange}
-      required
-      InputProps={{
-        startAdornment: (
-          <InputAdornment position="start">{icon}</InputAdornment>
-        ),
-      }}
-      autoComplete={auto}
-    />
+  const renderInput = useCallback(
+    (label, name, icon, type = "text", auto = "") => (
+      <TextField
+        label={label}
+        name={name}
+        type={type}
+        fullWidth
+        margin="normal"
+        value={form[name]}
+        onChange={handleChange}
+        required
+        autoComplete={auto}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">{icon}</InputAdornment>
+          ),
+        }}
+      />
+    ),
+    [form, handleChange]
   );
 
-  // SPINNER GLOBAL
+  // ---------- SPINNER GLOBAL ----------
   if (authenticating) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
@@ -243,7 +232,6 @@ export default function Register() {
             "Usuario",
             "username",
             <PersonOutline color="action" />,
-            "text",
             "username"
           )}
 
@@ -305,7 +293,7 @@ export default function Register() {
               type="submit"
               variant="contained"
               fullWidth
-              disabled={loading || authenticating}
+              disabled={isBlocked}
               sx={registerStyles.boton(theme)}
             >
               {loading ? (
@@ -316,14 +304,13 @@ export default function Register() {
             </Button>
 
             <Button
-  variant="outlined"
-  fullWidth
-  onClick={() => navigate("/login")}
-  sx={registerStyles.botonRegister(theme)}
->
-  Ya tengo cuenta
-</Button>
-            
+              variant="outlined"
+              fullWidth
+              onClick={() => navigate("/login")}
+              sx={registerStyles.botonRegister(theme)}
+            >
+              Ya tengo cuenta
+            </Button>
           </Box>
         </form>
 
@@ -342,4 +329,4 @@ export default function Register() {
       </Paper>
     </Container>
   );
-              }
+    }
