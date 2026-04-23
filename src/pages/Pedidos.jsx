@@ -74,12 +74,21 @@ export default function Pedidos() {
 
   if (totalCount === 0)
     return (
-      <Container sx={{ mt: 4, textAlign: "center" }}>
-        <Typography variant="h6">Aún no tienes pedidos</Typography>
-        <Typography variant="body2" color="text.secondary">
-          Cuando compres algo aparecerá aquí
-        </Typography>
-      </Container>
+      <Container sx={pedidosStyles.emptyState}>
+  <Typography
+    variant="h6"
+    sx={pedidosStyles.emptyTitle(theme)}
+  >
+    Aún no tienes pedidos
+  </Typography>
+
+  <Typography
+    variant="body2"
+    sx={pedidosStyles.emptySubtitle(theme)}
+  >
+    Cuando compres algo aparecerá aquí
+  </Typography>
+</Container>
     );
 
   return (
