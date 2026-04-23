@@ -159,41 +159,43 @@ export default function ProductoDetalle() {
 
         {/* IMÁGENES */}
         <Grid item xs={12} md={6}>
-          <Box sx={imagenWrapperSx}>
+  <Box sx={imagenWrapperSx}>
 
-            {mostrarMiniaturas && (
-              <Box sx={miniaturasContainerSx}>
-                {imagenes.map((img, i) => (
-                  <Box
-                    key={i}
-                    component="img"
-                    src={img}
-                    onClick={() => cambiarImagen(img)}
-                    sx={miniaturaSx(imagenMostrada === img)}
-                  />
-                ))}
-              </Box>
-            )}
+    {/* IMAGEN PRINCIPAL */}
+    <Box
+      sx={{
+        ...imagenContainerSx(theme),
+        cursor: "zoom-in",
+      }}
+      onClick={() => {
+        setZoomImage(imagenMostrada);
+        setZoomOpen(true);
+      }}
+    >
+      <Box
+        component="img"
+        src={imagenMostrada}
+        sx={imagenSx}
+      />
+    </Box>
 
-            <Box
-              sx={{
-                ...imagenContainerSx(theme),
-                cursor: "zoom-in",
-              }}
-              onClick={() => {
-                setZoomImage(imagenMostrada);
-                setZoomOpen(true);
-              }}
-            >
-              <Box
-                component="img"
-                src={imagenMostrada}
-                sx={imagenSx}
-              />
-            </Box>
+    {/* MINIATURAS ABAJO */}
+    {mostrarMiniaturas && (
+      <Box sx={miniaturasContainerSx}>
+        {imagenes.map((img, i) => (
+          <Box
+            key={i}
+            component="img"
+            src={img}
+            onClick={() => cambiarImagen(img)}
+            sx={miniaturaSx(imagenMostrada === img)}
+          />
+        ))}
+      </Box>
+    )}
 
-          </Box>
-        </Grid>
+  </Box>
+</Grid>
 
         {/* DETALLE */}
         <Grid item xs={12} md={6}>
