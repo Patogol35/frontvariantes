@@ -17,10 +17,10 @@ const registerStyles = {
 
     // BORDE 
     border: "1px solid",
-    borderColor:
-      theme.palette.mode === "dark"
-        ? "rgba(255,255,255,0.15)"
-        : "rgba(0,0,0,0.15)",
+borderColor:
+  theme.palette.mode === "dark"
+    ? "#fff"   
+    : "#000",  
 
     // SOMBRA
     boxShadow:
