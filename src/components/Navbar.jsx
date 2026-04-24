@@ -35,14 +35,17 @@ import styles from "./Navbar.styles";
 const MotionAppBar = motion(AppBar);
 
 export default function Navbar() {
-  const { isAuthenticated, logout, user } = useAuth();
+  const { isAuthenticated, logout, user, loading } = useAuth(); // ✅ agregado loading
   const { mode, toggleMode } = useThemeMode();
   const navigate = useNavigate();
 
   const [open, setOpen] = useState(false);
   const scrolled = useScrollTrigger(50);
 
-  // ✅ Menú dinámico SIN snapshot (elimina flicker)
+  // ✅ BLOQUEA RENDER mientras auth está cambiando
+  if (loading) return null;
+
+  // ✅ Menú limpio (sin hacks)
   const menu = isAuthenticated ? authMenu : guestMenu;
 
   const handleToggleMenu = useCallback(() => {
@@ -57,19 +60,18 @@ export default function Navbar() {
 
   const handleCloseMenu = useCallback(() => setOpen(false), []);
 
-  // ✅ LOGOUT
   const handleLogout = useCallback(() => {
-  setOpen(false);
+    setOpen(false);
 
-  logout();
+    logout();
 
-  toast.success("Sesión cerrada correctamente 👋", {
-    position: "top-right",
-    autoClose: 2000,
-  });
+    toast.success("Sesión cerrada correctamente 👋", {
+      position: "top-right",
+      autoClose: 2000,
+    });
 
-  navigate("/login", { replace: true });
-}, [logout, navigate]);
+    navigate("/login", { replace: true });
+  }, [logout, navigate]);
 
   const textColor = () => "#fff";
 
