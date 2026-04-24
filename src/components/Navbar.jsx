@@ -40,10 +40,15 @@ export default function Navbar() {
   const navigate = useNavigate();
 
   const [open, setOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false); // 🔥 FIX
   const scrolled = useScrollTrigger(50);
 
-  // ✅ Menú dinámico SIN snapshot (elimina flicker)
-  const menu = isAuthenticated ? authMenu : guestMenu;
+  // 🔥 MENÚ SIN FLICKER
+  const menu = isLoggingOut
+    ? []
+    : isAuthenticated
+    ? authMenu
+    : guestMenu;
 
   const handleToggleMenu = useCallback(() => {
     setOpen((prev) => {
@@ -57,24 +62,27 @@ export default function Navbar() {
 
   const handleCloseMenu = useCallback(() => setOpen(false), []);
 
-  // ✅ LOGOUT
+  // 🔥 LOGOUT FIXED
   const handleLogout = useCallback(() => {
-  setOpen(false);
+    setIsLoggingOut(true);
 
-  logout();
+    setOpen(false);
 
-  toast.success("Sesión cerrada correctamente 👋", {
-    position: "top-right",
-    autoClose: 2000,
-  });
+    logout();
 
-  navigate("/login", { replace: true });
-}, [logout, navigate]);
+    toast.success("Sesión cerrada correctamente 👋", {
+      position: "top-right",
+      autoClose: 2000,
+    });
+
+    navigate("/login", { replace: true });
+  }, [logout, navigate]);
 
   const textColor = () => "#fff";
 
   const UserSection = ({ showLogout = true, mobile = false }) =>
-    isAuthenticated && (
+    isAuthenticated &&
+    !isLoggingOut && (
       <Stack
         direction={mobile ? "column" : "row"}
         spacing={1.5}
@@ -176,7 +184,7 @@ export default function Navbar() {
 
           <MenuList onClick={handleCloseMenu} />
 
-          {isAuthenticated && (
+          {isAuthenticated && !isLoggingOut && (
             <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.95 }}>
               <Button
                 onClick={handleLogout}
@@ -197,4 +205,4 @@ export default function Navbar() {
       </Drawer>
     </>
   );
-}
+      }
