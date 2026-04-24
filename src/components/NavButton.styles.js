@@ -24,22 +24,17 @@ const navButtonStyles = (theme, isActive, item, alwaysColoredPaths) => ({
 
   // 🔥 HOVER FIX
   "&:hover": {
-    background: {
-      xs: item.color,
-      md: item.color, // 👈 AQUÍ está la clave
-    },
-    boxShadow: isActive
-      ? "0 0 20px rgba(0,0,0,0.4)"
-      : "0 0 12px rgba(0,0,0,0.25)",
-    filter: "brightness(1.1)",
+  background: {
+    xs: item.color,
+    md: `linear-gradient(135deg, ${item.color} 0%, ${item.color}e6 100%)`,
   },
+  boxShadow: isActive
+    ? "0 0 20px rgba(0,0,0,0.4)"
+    : "0 0 12px rgba(0,0,0,0.25)",
 
-  // Dark mode
-  ...(theme.palette.mode === "dark" && {
-    color: "#fff",
-    "&:hover": {
-      filter: "brightness(1.2)",
-    },
+  transform: "scale(1.02)", // 👈 MÁS SUAVE
+  transformOrigin: "center", // 👈 clave para que no “empuje” abajo
+},
   }),
 });
 
