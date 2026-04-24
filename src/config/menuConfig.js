@@ -6,40 +6,40 @@ import {
   PersonAdd as PersonAddIcon,
 } from "@mui/icons-material";
 
-import { ROUTES } from "./routes";
+import { menuColors } from "../theme/colors"; // 👈 IMPORTANTE
 
 export const authMenu = [
   {
     label: "Inicio",
-    path: ROUTES.HOME,
+    path: "/",
     icon: HomeIcon,
-    color: "primary",
+    color: menuColors.primary,
   },
   {
     label: "Carrito",
-    path: ROUTES.CART,
+    path: "/carrito",
     icon: ShoppingCartIcon,
-    color: "success",
+    color: menuColors.success,
   },
   {
     label: "Mis pedidos",
-    path: ROUTES.ORDERS,
+    path: "/pedidos",
     icon: ListAltIcon,
-    color: "warning",
+    color: menuColors.warning,
   },
 ];
 
 export const guestMenu = [
   {
     label: "Iniciar sesión",
-    path: ROUTES.LOGIN,
+    path: "/login",
     icon: LoginIcon,
-    color: "primary",
+    color: menuColors.primary,
   },
   {
     label: "Registrarse",
-    path: ROUTES.REGISTER,
+    path: "/register",
     icon: PersonAddIcon,
-    color: "secondary",
+    color: menuColors.secondary,
   },
 ];
