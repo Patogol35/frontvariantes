@@ -2,43 +2,71 @@ const navButtonStyles = (theme, isActive, item, alwaysColoredPaths) => ({
   fontSize: "1.05rem",
   fontWeight: 600,
   color: "#fff",
-  borderRadius: "12px",
+  borderRadius: "14px",
   textTransform: "none",
   width: "100%",
   py: 1.2,
-  transition: "all 0.25s ease",
-  "& .MuiButton-startIcon": { color: "#fff" },
+  position: "relative",
+  overflow: "hidden",
+  transition: "all 0.3s ease",
 
-  // Fondo dinámico
+  "& .MuiButton-startIcon": {
+    color: "#fff",
+    transition: "transform 0.3s ease",
+  },
+
+  // 🎨 Fondo base
   background: {
-    xs: item.color, // móvil siempre con color
+    xs: item.color,
     md:
       isActive || alwaysColoredPaths.includes(item.path)
-        ? item.color
+        ? `linear-gradient(135deg, ${item.color}, ${item.color}cc)`
         : "transparent",
   },
 
-  // Estado activo
-  boxShadow: isActive ? "0 0 20px rgba(255,255,255,0.5)" : "none",
-  transform: isActive ? "scale(1.04)" : "scale(1)",
+  // ✨ Estado activo
+  boxShadow: isActive
+    ? `0 8px 25px ${item.color}55`
+    : "none",
 
-  // 🔥 HOVER FIX
+  transform: isActive ? "translateY(-2px) scale(1.03)" : "scale(1)",
+
+  // 🔥 Hover premium
   "&:hover": {
     background: {
       xs: item.color,
-      md: item.color, // 👈 AQUÍ está la clave
+      md: `linear-gradient(135deg, ${item.color}, ${item.color}cc)`,
     },
-    boxShadow: isActive
-      ? "0 0 20px rgba(0,0,0,0.4)"
-      : "0 0 12px rgba(0,0,0,0.25)",
-    filter: "brightness(1.1)",
+    boxShadow: `0 10px 30px ${item.color}66`,
+    transform: "translateY(-3px) scale(1.04)",
+    filter: "brightness(1.08)",
+
+    "& .MuiButton-startIcon": {
+      transform: "translateX(4px)", // pequeño movimiento cool
+    },
   },
 
-  // Dark mode
+  // 🌊 Efecto shimmer (detalle PRO)
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    top: 0,
+    left: "-100%",
+    width: "100%",
+    height: "100%",
+    background:
+      "linear-gradient(120deg, transparent, rgba(255,255,255,0.25), transparent)",
+    transition: "all 0.6s ease",
+  },
+
+  "&:hover::before": {
+    left: "100%",
+  },
+
+  // 🌙 Dark mode ajuste fino
   ...(theme.palette.mode === "dark" && {
-    color: "#fff",
     "&:hover": {
-      filter: "brightness(1.2)",
+      filter: "brightness(1.15)",
     },
   }),
 });
