@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useThemeMode } from "../context/ThemeContext";
@@ -42,13 +42,17 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const scrolled = useScrollTrigger(50);
 
-  // ✅ FIX REAL: evita flicker sin ocultar todo el navbar
-  const menu =
-    loading
-      ? authMenu
-      : isAuthenticated
-      ? authMenu
-      : guestMenu;
+  // ✅ 🔥 PRO FIX: persistir último estado válido
+  const lastAuthRef = useRef(isAuthenticated);
+
+  useEffect(() => {
+    if (!loading) {
+      lastAuthRef.current = isAuthenticated;
+    }
+  }, [isAuthenticated, loading]);
+
+  const effectiveAuth = loading ? lastAuthRef.current : isAuthenticated;
+  const menu = effectiveAuth ? authMenu : guestMenu;
 
   const handleToggleMenu = useCallback(() => {
     setOpen((prev) => {
@@ -78,7 +82,7 @@ export default function Navbar() {
   const textColor = () => "#fff";
 
   const UserSection = ({ showLogout = true, mobile = false }) =>
-    isAuthenticated && (
+    effectiveAuth && (
       <Stack
         direction={mobile ? "column" : "row"}
         spacing={1.5}
@@ -180,7 +184,7 @@ export default function Navbar() {
 
           <MenuList onClick={handleCloseMenu} />
 
-          {isAuthenticated && (
+          {effectiveAuth && (
             <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.95 }}>
               <Button
                 onClick={handleLogout}
@@ -201,4 +205,4 @@ export default function Navbar() {
       </Drawer>
     </>
   );
-}
+          }
