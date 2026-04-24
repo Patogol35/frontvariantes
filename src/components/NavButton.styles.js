@@ -11,7 +11,7 @@ const navButtonStyles = (theme, isActive, item, alwaysColoredPaths) => ({
 
   // Fondo dinámico
   background: {
-    xs: item.color,
+    xs: item.color, // móvil siempre con color
     md:
       isActive || alwaysColoredPaths.includes(item.path)
         ? item.color
@@ -20,31 +20,30 @@ const navButtonStyles = (theme, isActive, item, alwaysColoredPaths) => ({
 
   // Estado activo
   boxShadow: isActive ? "0 0 20px rgba(255,255,255,0.5)" : "none",
-  transform: isActive ? "scale(1.04)" : "scale(1)",
+  transform: isActive ? "translateY(-1px)" : "translateY(0)",
 
-  // 🔥 HOVER FIX
+  // 🔥 HOVER (sin romper layout)
   "&:hover": {
     background: {
       xs: item.color,
-      md: `linear-gradient(135deg, ${item.color} 0%, ${item.color}cc 100%)`,
+      md: item.color, // mismo color, no se deforma
     },
+    transform: "translateY(-2px)", // 👈 sin scale
     boxShadow: isActive
-      ? "0 6px 22px rgba(0,0,0,0.35)"
-      : "0 4px 16px rgba(0,0,0,0.25)",
-    transform: "translateY(-2px) scale(1.02)",
-    filter: "saturate(1.08)",
+      ? "0 6px 20px rgba(0,0,0,0.35)"
+      : "0 4px 14px rgba(0,0,0,0.25)",
   },
 
   // 🌙 DARK MODE
   ...(theme.palette.mode === "dark" && {
+    color: "#fff",
     "&:hover": {
       background: {
         xs: item.color,
-        md: `linear-gradient(135deg, ${item.color} 0%, ${item.color}dd 100%)`,
+        md: item.color,
       },
-      boxShadow: "0 8px 26px rgba(0,0,0,0.6)",
-      transform: "translateY(-2px) scale(1.02)",
-      filter: "saturate(1.12)",
+      boxShadow: "0 6px 22px rgba(0,0,0,0.6)",
+      transform: "translateY(-2px)",
     },
   }),
 });
