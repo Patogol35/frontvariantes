@@ -1,11 +1,11 @@
 const loginStyles = {
-  container: (theme) => ({
-    minHeight: "75vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    p: 2,
-  }),
+  container: () => ({
+  minHeight: "75vh", // 👈 clave, esto elimina el espacio feo
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  p: 2,
+}),
 
   paper: (theme) => ({
     p: 4,
